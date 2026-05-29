@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Local/private files
+data/private_docs/
+uploads/
+vector_store/
+
+# Vector DB & model artifacts
+chroma_db/
+chromadb/
+*.faiss
+*.index
+*.pkl
+*.npy
+models/
+model_cache/
+
+# Logs
+*.log
+logs/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
