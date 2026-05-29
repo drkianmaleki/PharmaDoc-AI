@@ -6,61 +6,69 @@
   <img src="https://img.shields.io/badge/Pydantic-v2-E92063?style=for-the-badge&logo=pydantic&logoColor=white" alt="Pydantic">
   <img src="https://img.shields.io/badge/SentenceTransformers-2.7%2B-F7931E?style=for-the-badge" alt="SentenceTransformers">
   <img src="https://img.shields.io/badge/Tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="pytest">
-  <img src="https://img.shields.io/badge/No%20API%20Key-Local%20First-22C55E?style=for-the-badge" alt="Local First">
+  <img src="https://img.shields.io/badge/Local--First-No%20API%20Key-22C55E?style=for-the-badge" alt="Local First">
 </p>
 
 <p align="center">
-  A fully local, no-API-key Retrieval-Augmented Generation application built with Streamlit.<br>
-  Upload documents, ask questions, and get source-grounded answers — entirely on your machine.
+  A basic local-first Retrieval-Augmented Generation app built with Streamlit.<br>
+  Upload text documents, ask questions, and inspect the source chunks used to answer them.
 </p>
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [How It Works](#how-it-works)
-- [Chunking Strategies](#chunking-strategies)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Running the App](#running-the-app)
-- [Configuration](#configuration)
-- [Running Tests](#running-tests)
-- [Design Decisions](#design-decisions)
-- [Limitations](#limitations)
-- [Roadmap](#roadmap)
+* [Overview](#overview)
+* [Features](#features)
+* [How It Works](#how-it-works)
+* [Chunking Strategies](#chunking-strategies)
+* [Project Structure](#project-structure)
+* [Installation](#installation)
+* [Running the App](#running-the-app)
+* [Configuration](#configuration)
+* [Running Tests](#running-tests)
+* [Design Decisions](#design-decisions)
+* [Limitations](#limitations)
+* [Roadmap](#roadmap)
 
 ---
 
 ## Overview
 
-This project implements the complete RAG loop — document ingestion, chunking, embedding, semantic retrieval, and answer synthesis — in a clean, inspectable codebase. Every step is explicit and testable. There are no hidden API calls, no cloud services, and no dependencies beyond the packages in `requirements.txt`.
+This project demonstrates the basic functioning of a Retrieval-Augmented Generation (RAG) system in a clean, inspectable codebase.
 
-It is designed to be a solid foundation for understanding how RAG systems work before layering on complexity.
+It implements the core RAG loop:
+
+1. Upload text documents.
+2. Split documents into chunks.
+3. Convert chunks into embeddings.
+4. Retrieve the most relevant chunks for a user question.
+5. Build a simple answer from the retrieved context.
+6. Show the source chunks used to support the answer.
+
+The goal is **clarity**, not production-scale complexity. This project intentionally avoids advanced retrieval pipelines, agents, reranking, persistent vector databases, and LLM-based generation so that the basic RAG mechanism remains easy to understand.
 
 ---
 
 ## Features
 
-| Capability | Detail |
-|---|---|
-| **Document ingestion** | Upload one or more `.txt` files through the Streamlit UI |
-| **Four chunking strategies** | Character, Word Boundary, Sentence, Paragraph — selectable at runtime |
-| **Local embeddings** | [`sentence-transformers/all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) runs entirely offline |
-| **Semantic retrieval** | Cosine similarity over normalized embeddings via NumPy |
-| **Source-grounded answers** | Responses are assembled from retrieved sentences; no hallucination |
-| **Source attribution** | Every answer links back to the originating file and chunk |
-| **Validated data model** | Pydantic v2 schemas with model-level constraint validation throughout |
-| **Progressive loading** | Sidebar renders immediately; heavy models load with a status indicator |
-| **No API key required** | Fully offline after initial model download |
-| **Test suite** | 22 pytest tests covering chunking logic, document loading, and answer generation |
+| Capability                  | Detail                                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| **Document ingestion**      | Upload one or more `.txt` files through the Streamlit UI                            |
+| **Basic chunking options**  | Character, Word Boundary, Sentence, and Paragraph strategies                        |
+| **Local embeddings**        | Uses `sentence-transformers/all-MiniLM-L6-v2` after first model download            |
+| **Semantic retrieval**      | Cosine similarity over normalized embeddings using NumPy                            |
+| **Source-grounded answers** | Responses are assembled from retrieved sentences rather than hallucinated           |
+| **Source attribution**      | Each answer shows the originating file and retrieved chunks                         |
+| **Validated data model**    | Pydantic v2 schemas for documents, chunks, settings, retrieval results, and answers |
+| **No API key required**     | Runs locally after dependencies and the embedding model are installed/downloaded    |
+| **Test suite**              | pytest tests covering chunking, document loading, and answer generation             |
 
 ---
 
 ## How It Works
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        User uploads .txt files                  │
 └────────────────────────────┬────────────────────────────────────┘
@@ -68,25 +76,25 @@ It is designed to be a solid foundation for understanding how RAG systems work b
                              ▼
                   ┌──────────────────────┐
                   │   Document Loader    │  UTF-8 / Latin-1 decode
-                  │   (document_loader)  │  → UploadedDocument
+                  │   document_loader    │  → UploadedDocument
                   └──────────┬───────────┘
                              │
                              ▼
                   ┌──────────────────────┐
-                  │    Text Chunker      │  Character / Word Boundary /
-                  │    (chunking)        │  Sentence / Paragraph strategy
+                  │     Text Chunker     │  Character / Word Boundary /
+                  │      chunking        │  Sentence / Paragraph strategy
                   └──────────┬───────────┘  → List[TextChunk]
                              │
                              ▼
                   ┌──────────────────────┐
                   │   Embedding Model    │  SentenceTransformers
-                  │   (embeddings)       │  all-MiniLM-L6-v2
+                  │     embeddings       │  all-MiniLM-L6-v2
                   └──────────┬───────────┘  → Normalized NumPy array
                              │
                              ▼
                   ┌──────────────────────┐
-                  │  In-Memory Retriever │  Cosine similarity (dot product
-                  │  (retriever)         │  on normalized vectors)
+                  │  In-Memory Retriever │  Cosine similarity
+                  │      retriever       │  over normalized vectors
                   └──────────┬───────────┘  → List[RetrievedChunk]
                              │
                     User asks a question
@@ -94,13 +102,13 @@ It is designed to be a solid foundation for understanding how RAG systems work b
                              ▼
                   ┌──────────────────────┐
                   │  Answer Synthesizer  │  Keyword-overlap sentence
-                  │  (generator)         │  selection; no LLM required
+                  │      generator       │  selection; no LLM required
                   └──────────┬───────────┘  → ChatAnswer + SourceReferences
                              │
                              ▼
                   ┌──────────────────────┐
-                  │   Streamlit Chat UI  │  Answer, sources, and full
-                  │   (app.py)           │  retrieved context on request
+                  │   Streamlit Chat UI  │  Answer, sources, and
+                  │        app.py        │  retrieved context
                   └──────────────────────┘
 ```
 
@@ -108,39 +116,40 @@ It is designed to be a solid foundation for understanding how RAG systems work b
 
 ## Chunking Strategies
 
-Chunking quality directly affects retrieval quality. Four strategies are available and can be switched in the sidebar without restarting the app.
+Chunking quality affects retrieval quality. This project includes four basic chunking strategies that can be selected from the sidebar.
 
-| Strategy | How it splits | Best for |
-|---|---|---|
-| **Character** | Exact character slices at `chunk_size` | Fastest; acceptable when text is already clean |
-| **Word Boundary** | Snaps each boundary back to the nearest space | General purpose; no broken words *(default)* |
-| **Sentence** | Groups complete sentences up to `chunk_size`; oversized sentences fall back to word-boundary | Factual Q&A, structured prose |
-| **Paragraph** | Groups complete paragraphs; oversized paragraphs fall back to word-boundary | Long-form documents, reports, articles |
+| Strategy          | How it splits                                 | Best for                                       |
+| ----------------- | --------------------------------------------- | ---------------------------------------------- |
+| **Character**     | Exact character slices at `chunk_size`        | Fastest; acceptable when text is already clean |
+| **Word Boundary** | Snaps each boundary back to the nearest space | General purpose; avoids broken words           |
+| **Sentence**      | Groups complete sentences up to `chunk_size`  | Factual Q&A and structured prose               |
+| **Paragraph**     | Groups complete paragraphs when possible      | Longer documents, reports, and articles        |
 
-All strategies share the same `chunk_size` and `chunk_overlap` controls. Structure-aware strategies (Sentence, Paragraph) use a lighter normalisation pass that preserves newlines before splitting; Character and Word Boundary use full whitespace collapse.
+These are still intentionally simple chunking strategies. The project does not attempt semantic chunking, recursive document splitting, metadata-aware chunking, or advanced retrieval optimization.
 
 ---
 
 ## Project Structure
 
-```
-RAG-Streamlit-Knowledge-Assistant/
+```text
+RAG-Powered-Knowledge-Assistant/
 │
 ├── app.py                   # Streamlit entry point
-├── requirements.txt
-├── pytest.ini
+├── requirements.txt         # Minimal dependencies
+├── pytest.ini               # pytest configuration
+├── README.md
 │
 ├── src/
-│   ├── schemas.py           # Pydantic models + ChunkingStrategy enum
-│   ├── document_loader.py   # UTF-8/Latin-1 file decoding
-│   ├── chunking.py          # Four chunking strategies + clean_text
+│   ├── schemas.py           # Pydantic models and ChunkingStrategy enum
+│   ├── document_loader.py   # Uploaded .txt file decoding
+│   ├── chunking.py          # Basic chunking strategies
 │   ├── embeddings.py        # SentenceTransformers wrapper
 │   ├── retriever.py         # In-memory cosine similarity retrieval
-│   ├── generator.py         # Keyword-based sentence extraction
-│   └── rag_pipeline.py      # Orchestrates ingestion → retrieval
+│   ├── generator.py         # Source-grounded answer synthesis
+│   └── rag_pipeline.py      # Orchestrates ingestion and retrieval
 │
 └── tests/
-    ├── test_chunking.py      # 22 tests — all strategies, edge cases
+    ├── test_chunking.py
     ├── test_document_loader.py
     └── test_generator.py
 ```
@@ -149,21 +158,21 @@ RAG-Streamlit-Knowledge-Assistant/
 
 ## Installation
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/drkianmaleki/RAG-Powered-Knowledge-Assistant-local.git
-cd RAG-Powered-Knowledge-Assistant-local
+git clone https://github.com/drkianmaleki/RAG-Powered-Knowledge-Assistant.git
+cd RAG-Powered-Knowledge-Assistant
 ```
 
-**2. Create and activate a virtual environment**
+### 2. Create and activate a virtual environment
 
 ```bash
 python -m venv venv
 ```
 
 <details>
-<summary>Windows (PowerShell)</summary>
+<summary>Windows PowerShell</summary>
 
 ```powershell
 .\venv\Scripts\Activate.ps1
@@ -180,13 +189,13 @@ source venv/bin/activate
 
 </details>
 
-**3. Install dependencies**
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> The embedding model (`all-MiniLM-L6-v2`, ~90 MB) is downloaded automatically by SentenceTransformers on first use and cached locally for all subsequent runs.
+The embedding model, `sentence-transformers/all-MiniLM-L6-v2`, is downloaded automatically by SentenceTransformers on first use and cached locally for later runs.
 
 ---
 
@@ -196,32 +205,30 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The sidebar and page title render immediately. A status indicator appears while the embedding model and pipeline dependencies load in the background — this only happens once per session.
+Then:
 
-**Quickstart**
-
-1. Select a **Chunking strategy** in the sidebar.
-2. Adjust **Chunk size**, **Chunk overlap**, and **Retrieved chunks** as needed.
-3. Click **Browse files** and upload one or more `.txt` files.
+1. Select a chunking strategy in the sidebar.
+2. Adjust chunk size, chunk overlap, and number of retrieved chunks if needed.
+3. Upload one or more `.txt` files.
 4. Click **Index uploaded files**.
-5. Type a question in the chat box.
-6. Expand **Retrieved context** to inspect the exact source chunks used to build the answer.
+5. Ask a question in the chat box.
+6. Expand **Retrieved context** to inspect the source chunks used to build the answer.
 
 ---
 
 ## Configuration
 
-All settings are accessible from the sidebar and take effect when you click **Index uploaded files**.
+All settings are controlled from the Streamlit sidebar and take effect when **Index uploaded files** is clicked.
 
-| Setting | Default | Range | Description |
-|---|---|---|---|
-| Chunking strategy | Word Boundary | — | How text is split into chunks |
-| Chunk size | 900 | 300 – 2 500 chars | Maximum characters per chunk |
-| Chunk overlap | 180 | 0 – 800 chars | Shared context between consecutive chunks |
-| Retrieved chunks (top-k) | 4 | 1 – 10 | Number of chunks retrieved per question |
-| Embedding model | `all-MiniLM-L6-v2` | any HF model | SentenceTransformers model identifier |
+| Setting           |            Default |                                     Range | Description                               |
+| ----------------- | -----------------: | ----------------------------------------: | ----------------------------------------- |
+| Chunking strategy |      Word Boundary |                                         — | How text is split into chunks             |
+| Chunk size        |                900 |                       300–2500 characters | Maximum characters per chunk              |
+| Chunk overlap     |                180 |                          0–800 characters | Shared context between consecutive chunks |
+| Retrieved chunks  |                  4 |                                      1–10 | Number of chunks retrieved per question   |
+| Embedding model   | `all-MiniLM-L6-v2` | any compatible SentenceTransformers model | Embedding model identifier                |
 
-Pydantic validates all settings on construction — invalid combinations (e.g. overlap ≥ chunk size) are caught immediately with a clear error message.
+Pydantic validates settings when they are created. Invalid combinations, such as overlap greater than or equal to chunk size, are rejected with a clear error message.
 
 ---
 
@@ -231,51 +238,100 @@ Pydantic validates all settings on construction — invalid combinations (e.g. o
 pytest tests -v
 ```
 
-```
-tests/test_chunking.py          22 tests  — strategies, validation, edge cases
-tests/test_document_loader.py    X tests  — encoding, empty files
-tests/test_generator.py          X tests  — answer synthesis, source attribution
-```
+The test suite covers:
+
+* text chunking behavior
+* chunking edge cases
+* document loading
+* answer synthesis
+* source attribution
 
 ---
 
 ## Design Decisions
 
-**No LLM for answer generation**
-The answer synthesiser (`generator.py`) selects and combines sentences from retrieved chunks based on keyword overlap with the query. This keeps the system fully offline, deterministic, and transparent — every word in the answer can be traced directly to a source chunk.
+### No LLM-based answer generation
 
-**In-memory retrieval**
-Uploaded documents are embedded and stored in a NumPy array for the duration of the session. Cosine similarity is computed as a dot product over L2-normalised vectors — fast, dependency-free, and easy to inspect.
+The answer synthesizer selects and combines sentences from retrieved chunks based on keyword overlap with the user query. This keeps the project fully inspectable and avoids unsupported generation.
 
-**Pydantic v2 throughout**
-Every data object (`UploadedDocument`, `TextChunk`, `RetrievedChunk`, `ChatAnswer`, `RAGSettings`) is a validated Pydantic model. Constraints are enforced at the model level via `@model_validator` — callers cannot construct invalid state.
+Every word in the answer comes from retrieved document context.
 
-**Deferred heavy imports**
-`sentence-transformers` and the pipeline modules are imported inside a `@st.cache_resource` function, so the Streamlit sidebar and title render immediately while dependencies load in the background.
+### In-memory retrieval
+
+Uploaded documents are embedded and stored in memory for the current Streamlit session. Cosine similarity is computed as a dot product over normalized embeddings.
+
+This is simple and appropriate for a basic RAG demonstration.
+
+### Pydantic v2 throughout
+
+The main data objects are Pydantic models:
+
+* `UploadedDocument`
+* `TextChunk`
+* `RetrievedChunk`
+* `SourceReference`
+* `ChatAnswer`
+* `RAGSettings`
+
+This keeps the code more explicit, typed, and maintainable.
+
+### Local-first design
+
+The app does not require an API key. After the embedding model is downloaded once, the app can run locally without external model API calls.
 
 ---
 
 ## Limitations
 
-- Works best with plain `.txt` files of small to medium length.
-- Does not support PDF, DOCX, HTML, or web pages.
-- The in-memory index is not persisted — re-indexing is required after each session.
-- Answer quality is bounded by keyword overlap; complex multi-hop reasoning is not supported.
-- No reranking, hybrid search, or metadata filtering.
+This is a basic RAG demonstration, not a production RAG system.
+
+Current limitations:
+
+* Supports `.txt` files only.
+* Works best with small to medium documents.
+* The index is stored in memory and is not persisted after the session ends.
+* The answer generation is extractive and simple.
+* Complex reasoning and multi-hop questions may not work well.
+* No PDF, DOCX, HTML, or web page support.
+* No persistent vector database.
+* No reranking.
+* No hybrid keyword/vector retrieval.
+* No metadata filtering.
+* No LLM-based response generation.
+* No authentication or deployment infrastructure.
 
 ---
 
 ## Roadmap
 
-Potential enhancements for a more advanced version of this system:
+Potential enhancements for a more advanced future version:
 
-- [ ] PDF and DOCX document support
-- [ ] Persistent vector storage (ChromaDB or FAISS)
-- [ ] Hybrid retrieval (dense + sparse / BM25)
-- [ ] Reranking (cross-encoder)
-- [ ] LLM-based answer generation (Anthropic / OpenAI / local Ollama)
-- [ ] Citation-aware response formatting
-- [ ] Retrieval evaluation metrics (MRR, NDCG, faithfulness)
-- [ ] Docker packaging
-- [ ] Multi-user session isolation
-- [ ] Monitoring and observability
+* [ ] PDF and DOCX support
+* [ ] Persistent vector storage with ChromaDB or FAISS
+* [ ] Hybrid retrieval using dense embeddings and sparse keyword search
+* [ ] Reranking with a cross-encoder
+* [ ] LLM-based answer generation
+* [ ] Citation-aware response formatting
+* [ ] Retrieval evaluation metrics
+* [ ] Docker packaging
+* [ ] GitHub Actions CI
+* [ ] Deployment
+* [ ] Multi-user session isolation
+* [ ] Monitoring and observability
+
+---
+
+## Professional Focus
+
+This project demonstrates the basic mechanics of RAG in a clear and inspectable way:
+
+* document upload
+* chunking
+* embeddings
+* semantic retrieval
+* source-grounded answering
+* Streamlit app development
+* Pydantic validation
+* simple test coverage
+
+It is intended as a foundational RAG project before building a more advanced retrieval system.
