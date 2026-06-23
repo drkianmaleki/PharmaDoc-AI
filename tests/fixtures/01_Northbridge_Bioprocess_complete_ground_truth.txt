@@ -1,0 +1,99 @@
+DOCUMENT TITLE: Single-Use Flow Path Technical Dossier
+COMPANY: Northbridge BioSystems
+DOCUMENT CODE: NBX-QA-4407
+PRODUCT FAMILY: NFlow XR sterile transfer manifold
+LOT: NXR-26-0418
+REVISION: D
+MANUFACTURING SITE: Wexford, Ireland
+DOCUMENT STATUS: SYNTHETIC TEST DATA | Not for regulatory or commercial use
+
+PAGE 1
+
+HEADER
+Northbridge BioSystems
+SYNTHETIC TEST DATA | NBX-QA-4407 | Not for regulatory or commercial use
+
+TITLE
+Single-Use Flow Path Technical Dossier
+
+SUBTITLE
+Gamma-compatible bioprocess assembly | Revision D
+
+PRODUCT INFORMATION
+Product family: NFlow XR sterile transfer manifold
+Lot: NXR-26-0418
+Manufacturing site: Wexford, Ireland
+
+SECTION: 1. Design Qualification Summary
+The NFlow XR assembly is a preconfigured fluid-transfer path comprising platinum-cured silicone tubing, polycarbonate junction manifolds, fluoropolymer vent filters, and overmolded thermoplastic elastomer transitions. Design verification addressed extractables risk, pressure-hold integrity, occlusion resistance, connector torque retention, and post-irradiation embrittlement.
+
+TABLE: Critical Attributes
+Critical attribute | Verification method | Acceptance criterion | Observed result
+Pressure decay | 30 min at 0.45 MPa | <=0.8 kPa | 0.3 kPa
+Burst pressure | Hydrostatic ramp | >=0.90 MPa | 1.24 MPa
+Particulate burden | USP <788> adapted | Internal alert level | Below alert
+Gamma dose mapping | ISO 11137-3 | 25-40 kGy | 31.6 kGy
+
+SECTION: 2. Materials of Construction
+TABLE: Materials of Construction
+Component | Polymer / grade | Compendial or regulatory basis
+Pump segment | Platinum-cured silicone | USP Class VI; ISO 10993-5
+Manifold body | Medical-grade polycarbonate | 21 CFR 177.1580
+Vent membrane | Hydrophobic PTFE | Bacterial retention validated
+Clamp body | Polyoxymethylene copolymer | Engineering drawing NBX-CLP-88
+
+Supplier-change notification is required 120 days before implementation for resin formulation, catalyst package, irradiation site, molding tool, or sterilization load configuration changes.
+
+PAGE 2
+
+HEADER
+Northbridge BioSystems
+SYNTHETIC TEST DATA | NBX-QA-4407 | Not for regulatory or commercial use
+
+SECTION: Release Specification and Process Capability
+Batch release integrates device-history-record reconciliation, line-clearance verification, calibrated test-equipment status, and electronic review of critical process parameters. Statistical trending is performed using normalized defect rates and process-capability indices.
+
+TABLE: Release Tests
+Release test | Method reference | Lower limit | Upper limit | Typical
+Flow coefficient | NBX-TM-114 | 1.85 L/min | 2.35 L/min | 2.12 L/min
+Clamp force | ASTM D790 adapted | 38 N | 62 N | 49 N
+Seal strength | ASTM F88 | 18 N/15 mm | Not applicable | 26 N/15 mm
+Endotoxin | USP <85> | Not applicable | 0.25 EU/device | <0.05 EU/device
+
+SECTION: Sterilization and Aging Model
+Accelerated aging was modeled using an Arrhenius relationship with Q10 = 2.0. Functional equivalence was confirmed after a simulated 36-month shelf-life interval, followed by transportation conditioning under ASTM D4169 distribution cycle 13. Package-integrity verification used dye penetration, bubble emission, and vacuum-decay methods.
+
+TABLE: Sterilization and Aging Results
+Condition | Pre-aging | Post-aging | Acceptance
+Tensile retention | 100% | 96.8% | >=90%
+Leak test pass rate | 60/60 | 60/60 | 60/60
+Visual anomaly rate | 0.0% | 1.7% | <=5.0%
+
+PAGE 3 - IMAGE-ONLY OCR PAGE
+
+PAGE HEADER OUTSIDE IMAGE
+Northbridge BioSystems
+SYNTHETIC TEST DATA | NBX-QA-4407 | Not for regulatory or commercial use
+
+TEXT INSIDE IMAGE
+INCOMING COMPONENT INSPECTION
+
+Visual and Dimensional Verification
+The molded polycarbonate manifold was examined under 500 lux illumination for gate vestige, particulate inclusions, stress whitening, sink marks, and flow-line discontinuity.
+
+Critical dimensions were measured using a calibrated optical comparator. Sampling followed ANSI/ASQ Z1.4, General Inspection Level II, AQL 0.65.
+
+Disposition
+All critical-to-quality attributes conformed to drawing NBX-MFD-217 Rev. E. No nonconforming material report was initiated.
+
+TABLE INSIDE IMAGE: Incoming Inspection
+Attribute | Method | Acceptance | Result
+Port concentricity | Optical comparator | <=0.20 mm | 0.08 mm
+Luer taper | ISO 594 gauge | Pass | Pass
+Bioburden | Membrane filtration | <=10 CFU/device | 2 CFU/device
+
+IMAGE FOOTER
+Synthetic test record - Image-only OCR page
+
+PAGE FOOTER
+SYNTHETIC TEST DATA | NBX-QA-4407 | Not for regulatory or commercial use

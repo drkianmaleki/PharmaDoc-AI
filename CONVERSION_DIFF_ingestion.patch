@@ -1,0 +1,207 @@
+--- original_notebook_cells_[33, 34, 35, 36].py
++++ ingestion.py_after_approved_patch.py
+@@ -142,8 +142,6 @@
+ 
+ def page_needs_ocr(page, min_digital_chars=OCR_MIN_DIGITAL_CHARS):
+     text = re.sub(r"\s+", "", page.get_text("text") or "")
+-    if len(text) >= min_digital_chars:
+-        return False
+ 
+     image_area = 0.0
+     page_area = max(float(page.rect.width * page.rect.height), 1.0)
+@@ -153,6 +151,9 @@
+                 image_area += float(rect.width * rect.height)
+         except Exception:
+             pass
++
++    if len(text) >= min_digital_chars and (image_area / page_area) < 0.45:
++        return False
+ 
+     return len(text) == 0 or (image_area / page_area) >= 0.45
+ 
+@@ -742,22 +743,66 @@
+ 
+ def _extract_legend_labels(image, axis_box):
+     """
+-    OCR likely legend text from the lower-left half of the plotting region.
+-    """
+-    left = max(0, axis_box["left"])
++    OCR likely legend text from the lower-left half of the plotting region,
++    along with the dominant color of each entry's marker/line swatch.
++
++    The left boundary is extended somewhat outside the plot's left axis
++    line, not just up to it. Legend boxes are sometimes anchored slightly
++    outside the strict plot interior (overlapping the y-axis tick-label
++    margin) depending on the charting tool, and a legend position a few
++    percent off should not cause the whole legend to go unread.
++
++    Each entry's swatch color is captured here (rather than just its text)
++    so that label-to-series assignment can match by color identity later,
++    instead of assuming the legend's reading order lines up with any
++    value-based ordering of the series.
++    """
++    plot_width = axis_box["right"] - axis_box["left"]
++    crop_left_px = max(0, int(axis_box["left"] - 0.50 * plot_width))
++    left = crop_left_px
+     top = max(0, int(axis_box["top"] + 0.45 * (axis_box["bottom"] - axis_box["top"])))
+-    right = min(image.width, int(axis_box["left"] + 0.58 * (axis_box["right"] - axis_box["left"])))
++    right = min(image.width, int(axis_box["left"] + 0.58 * plot_width))
+     bottom = min(image.height, axis_box["bottom"])
+ 
+     if right <= left or bottom <= top:
+         return []
+ 
++    import unicodedata
+     crop = image.crop((left, top, right, bottom))
+-    text = pytesseract.image_to_string(crop, config="--psm 6")
++    crop_rgb = np.array(crop.convert("RGB"))
++    # Sample from the crop's left edge up to (not including) the plot's
++    # left axis line. Data lines only start at the axis, so this region
++    # is legend/tick-label content only. Tick labels are black/gray
++    # (unsaturated), so they do not affect color detection.
++    swatch_window_width = max(40, axis_box["left"] - crop_left_px)
++
++    data = pytesseract.image_to_data(
++        crop, config="--psm 6", output_type=pytesseract.Output.DICT
++    )
++
++    raw_lines = {}
++    for i in range(len(data["text"])):
++        token = data["text"][i].strip()
++        if not token:
++            continue
++        key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
++        entry = raw_lines.setdefault(
++            key,
++            {"tokens": [], "top": data["top"][i], "bottom": data["top"][i] + data["height"][i]},
++        )
++        entry["tokens"].append(token)
++        entry["top"] = min(entry["top"], data["top"][i])
++        entry["bottom"] = max(entry["bottom"], data["top"][i] + data["height"][i])
+ 
+     labels = []
+ 
+-    for raw_line in text.splitlines():
++    for key in sorted(raw_lines.keys(), key=lambda k: raw_lines[k]["top"]):
++        entry = raw_lines[key]
++        raw_line = " ".join(entry["tokens"])
++        # Normalize Unicode before stripping so marker glyphs that some OCR
++        # engines render as lookalike Unicode characters (e.g. Roman numeral L
++        # for the legend line marker) map to their ASCII equivalents first.
++        raw_line = unicodedata.normalize("NFKC", raw_line)
+         line = re.sub(r"\s+", " ", raw_line).strip(" -|")
+ 
+         if len(line) < 3:
+@@ -784,10 +829,37 @@
+ 
+         line = re.sub(r"^[^A-Za-z]+", "", line)
+ 
+-        if line and line not in labels:
+-            labels.append(line)
+-
+-    return labels[:6]
++        if not line or line in [existing["text"] for existing in labels]:
++            continue
++
++        # Sample only a narrow central slice of the line height to avoid
++        # bleeding into adjacent rows when OCR bounding boxes are imprecise
++        # (bounding box height varies across Tesseract versions/platforms).
++        y_center = (entry["top"] + entry["bottom"]) // 2
++        half_h = max(4, (entry["bottom"] - entry["top"]) // 4)
++        y0 = max(0, y_center - half_h)
++        y1 = min(crop_rgb.shape[0], y_center + half_h)
++        window = crop_rgb[y0:y1, 0:swatch_window_width].reshape(-1, 3)
++        rgb = None
++
++        if window.size:
++            hsv_window = cv2.cvtColor(
++                window.reshape(-1, 1, 3).astype(np.uint8), cv2.COLOR_RGB2HSV
++            ).reshape(-1, 3)
++            saturated_mask = (
++                (hsv_window[:, 1] >= 60)
++                & (hsv_window[:, 2] >= 60)
++                & (hsv_window[:, 2] <= 252)
++            )
++            if saturated_mask.sum() >= 10:
++                rgb = np.median(window[saturated_mask], axis=0).tolist()
++
++        labels.append({"text": line, "rgb": rgb})
++
++        if len(labels) >= 6:
++            break
++
++    return labels
+ 
+ 
+ def _build_series_masks(rgb_image, axis_box):
+@@ -965,7 +1037,16 @@
+ 
+ def _assign_series_labels(candidate_series, legend_labels):
+     """
+-    Assign OCR legend labels in visual top-to-bottom order when available.
++    Assign OCR legend labels to candidate series.
++
++    Each legend entry's marker/line swatch color is matched to the
++    nearest candidate series color (smallest RGB distance), rather than
++    assuming the legend's top-to-bottom reading order lines up with any
++    value-based ordering of the series. That assumption breaks whenever a
++    legend is listed in a natural/logical order (e.g. placebo, low dose,
++    high dose) instead of by final value -- which is exactly when label
++    assignment matters most, since the misleading case is silent
++    otherwise.
+     """
+     ordered = sorted(
+         candidate_series,
+@@ -974,9 +1055,49 @@
+         ]),
+     )
+ 
+-    if legend_labels and len(legend_labels) >= len(ordered):
+-        for series, label in zip(ordered, legend_labels):
+-            series["label"] = label
++    colored_entries = [
++        entry for entry in legend_labels if entry.get("rgb") is not None
++    ]
++
++    if colored_entries:
++        candidate_pairs = []
++        for series in ordered:
++            center = series.get("center_rgb")
++            if center is None:
++                continue
++            for entry in colored_entries:
++                distance = sum(
++                    (a - b) ** 2 for a, b in zip(center, entry["rgb"])
++                )
++                candidate_pairs.append((distance, id(series), series, entry))
++
++        candidate_pairs.sort(key=lambda item: item[0])
++
++        matched_series_ids = set()
++        matched_entry_ids = set()
++
++        for _, series_id, series, entry in candidate_pairs:
++            if series_id in matched_series_ids or id(entry) in matched_entry_ids:
++                continue
++            series["label"] = entry["text"]
++            matched_series_ids.add(series_id)
++            matched_entry_ids.add(id(entry))
++
++        unmatched_texts = [
++            entry["text"] for entry in legend_labels
++            if id(entry) not in matched_entry_ids
++        ]
++
++        for index, series in enumerate(ordered, start=1):
++            if id(series) in matched_series_ids:
++                continue
++            if unmatched_texts:
++                series["label"] = unmatched_texts.pop(0)
++            else:
++                series["label"] = series.get("label_hint") or f"Series {index}"
++    elif legend_labels and len(legend_labels) >= len(ordered):
++        for series, entry in zip(ordered, legend_labels):
++            series["label"] = entry["text"] if isinstance(entry, dict) else entry
+     else:
+         for index, series in enumerate(ordered, start=1):
+             series["label"] = series.get("label_hint") or f"Series {index}"

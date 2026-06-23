@@ -1,6 +1,31 @@
-streamlit>=1.36.0
-sentence-transformers>=2.7.0
-pydantic>=2.7.0
-numpy>=1.26.0
-scikit-learn>=1.4.0
-pytest>=8.2.0
+# Python dependencies for PharmaDoc AI.
+#
+# Version ranges below match the original notebook's CELL 01 install list
+# exactly, with two evidence-based exceptions found by actually running
+# this package end-to-end (see CONVERSION_NOTES.md):
+#
+#   - ipython: an IMPLICIT Colab dependency. The notebook never installs
+#     it explicitly because Colab ships it pre-installed, but
+#     evaluation.py uses `from IPython.display import display`. Needed
+#     for a standalone install.
+#   - gradio: the notebook pins "<7", but Gradio 6.x removed the `type=`
+#     argument from gr.Chatbot(), which this app's UI (cell 49,
+#     unmodified) relies on. Pinned to "<6" so the existing UI code
+#     keeps working.
+#
+# tesseract-ocr is a SYSTEM (apt) package, not pip -- see Dockerfile.
+
+pymupdf>=1.24,<1.27
+sentence-transformers>=3.0,<6
+faiss-cpu>=1.8,<2
+transformers>=4.45,<5
+accelerate>=0.34,<2
+gradio>=5.0,<6
+pandas>=2.1,<3
+openpyxl>=3.1,<4
+python-docx>=1.1,<2
+pillow>=10,<13
+pytesseract>=0.3.10,<0.4
+opencv-python-headless>=4.9,<5
+openai>=1.40,<3
+ipython>=8.0,<9

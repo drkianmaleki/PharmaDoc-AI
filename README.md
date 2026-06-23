@@ -1,18 +1,25 @@
-# 🔎 RAG-Powered Knowledge Assistant
+# PharmaDoc AI
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Streamlit-1.36%2B-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/Gradio-5.x-FF7C00?style=for-the-badge&logo=gradio&logoColor=white" alt="Gradio">
+  <img src="https://img.shields.io/badge/FAISS-Vector%20Search-0467DF?style=for-the-badge" alt="FAISS">
   <img src="https://img.shields.io/badge/Pydantic-v2-E92063?style=for-the-badge&logo=pydantic&logoColor=white" alt="Pydantic">
-  <img src="https://img.shields.io/badge/SentenceTransformers-2.7%2B-F7931E?style=for-the-badge" alt="SentenceTransformers">
   <img src="https://img.shields.io/badge/Tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="pytest">
-  <img src="https://img.shields.io/badge/Local--First-No%20API%20Key-22C55E?style=for-the-badge" alt="Local First">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
 </p>
 
 <p align="center">
-  A basic local-first Retrieval-Augmented Generation app built with Streamlit.<br>
-  Upload text documents, ask questions, and inspect the source chunks used to answer them.
+  A multi-format Retrieval-Augmented Generation system for pharmaceutical/
+  regulatory documents: digital text, structured tables, scanned-page OCR,
+  and chart digitization, with deterministic answer routing, evidence
+  gating against hallucination, and full source traceability.
 </p>
+
+---
+
+> **⚠ Synthetic test data notice**
+> The sample documents included in `tests/fixtures/` — the Northbridge BioSystems Single-Use Flow Path Technical Dossier (JPG images) and the Virelion Therapeutics Phase III Clinical Study Summary (PDF) — are **entirely synthetic**. They were generated solely for the purpose of testing this software. They contain no real patient data, no real clinical trial results, and no real company, product, or regulatory information. They must not be used for any regulatory, clinical, or commercial purpose.
 
 ---
 
@@ -21,317 +28,359 @@
 * [Overview](#overview)
 * [Features](#features)
 * [How It Works](#how-it-works)
-* [Chunking Strategies](#chunking-strategies)
+* [Answer Routing](#answer-routing)
 * [Project Structure](#project-structure)
 * [Installation](#installation)
 * [Running the App](#running-the-app)
+* [Running with Docker](#running-with-docker)
 * [Configuration](#configuration)
+  * [OpenAI Backend (optional)](#openai-backend-optional)
 * [Running Tests](#running-tests)
 * [Design Decisions](#design-decisions)
 * [Limitations](#limitations)
-* [Roadmap](#roadmap)
+* [Conversion Notes](#conversion-notes)
 
 ---
 
 ## Overview
 
-This project demonstrates the basic functioning of a Retrieval-Augmented Generation (RAG) system in a clean, inspectable codebase.
+PharmaDoc AI ingests mixed-format pharmaceutical and regulatory documents
+(specifications, certificates of analysis, clinical trial reports,
+supplier qualification records) and answers questions against them with
+full source traceability -- file, page, bounding box, and confidence
+for every answer.
 
-It implements the core RAG loop:
+It implements the full pipeline:
 
-1. Upload text documents.
-2. Split documents into chunks.
-3. Convert chunks into embeddings.
-4. Retrieve the most relevant chunks for a user question.
-5. Build a simple answer from the retrieved context.
-6. Show the source chunks used to support the answer.
+1. Ingest PDFs, DOCX, images, and spreadsheets.
+2. Extract digital text, geometrically detect and classify tables, and
+   selectively OCR pages with no extractable text.
+3. Digitize line charts into structured `(x, series, y)` data via axis
+   calibration and per-series pixel tracing.
+4. Deduplicate near-identical content across extraction methods.
+5. Build a hybrid (semantic + lexical + metadata) FAISS retrieval index.
+6. Route each question through five deterministic answer paths --
+   structured single/multi-field, comparison, materials, plot-value
+   lookup -- before falling back to evidence-gated LLM generation.
+7. Surface sources, confidence, and chunk counts with every answer.
 
-The goal is **clarity**, not production-scale complexity. This project intentionally avoids advanced retrieval pipelines, agents, reranking, persistent vector databases, and LLM-based generation so that the basic RAG mechanism remains easy to understand.
+The goal is correctness on documents that don't look like clean prose:
+multi-table PDFs, scanned signature pages, and embedded chart images.
 
 ---
 
 ## Features
 
-| Capability                  | Detail                                                                              |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| **Document ingestion**      | Upload one or more `.txt` files through the Streamlit UI                            |
-| **Basic chunking options**  | Character, Word Boundary, Sentence, and Paragraph strategies                        |
-| **Local embeddings**        | Uses `sentence-transformers/all-MiniLM-L6-v2` after first model download            |
-| **Semantic retrieval**      | Cosine similarity over normalized embeddings using NumPy                            |
-| **Source-grounded answers** | Responses are assembled from retrieved sentences rather than hallucinated           |
-| **Source attribution**      | Each answer shows the originating file and retrieved chunks                         |
-| **Validated data model**    | Pydantic v2 schemas for documents, chunks, settings, retrieval results, and answers |
-| **No API key required**     | Runs locally after dependencies and the embedding model are installed/downloaded    |
-| **Test suite**              | pytest tests covering chunking, document loading, and answer generation             |
+| Capability | Detail |
+|---|---|
+| **Multi-format ingestion** | PDF, DOCX, TXT, CSV, XLSX, PNG/JPG/TIFF/BMP |
+| **Geometric table detection** | Column-clustering on word positions, not just PDF table objects; recovers missing headers |
+| **Selective OCR** | Tesseract only runs on pages below a digital-text-density threshold, not the whole document |
+| **Plot digitization** | Axis-tick calibration + per-series color/position tracing turns a line-chart image into queryable rows |
+| **Hybrid retrieval** | FAISS semantic search reranked with lexical overlap, identifier matching, and table/key-value intent detection |
+| **Deterministic answer routing** | Structured-field, multi-field, comparison, and materials questions are answered by direct lookup, not generation -- eliminates hallucination risk for the question types where it matters most |
+| **Evidence gating** | LLM-generated answers are checked against retrieved evidence terms before being returned |
+| **Local-first generation** | FLAN-T5 Base by default; optional OpenAI backend if a key is configured |
+| **Full source traceability** | Every answer reports file, page, content type, and a confidence label |
+| **Document deduplication** | SHA-256 + normalized-signature dedup across overlapping extraction methods |
+| **Persistence** | Save/load a processed FAISS index + content store across sessions |
+| **Explicit session state** | `RAGState` threaded through Gradio's `gr.State()` -- no module-level mutable globals |
 
 ---
 
 ## How It Works
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        User uploads .txt files                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │   Document Loader    │  UTF-8 / Latin-1 decode
-                  │   document_loader    │  → UploadedDocument
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │     Text Chunker     │  Character / Word Boundary /
-                  │      chunking        │  Sentence / Paragraph strategy
-                  └──────────┬───────────┘  → List[TextChunk]
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │   Embedding Model    │  SentenceTransformers
-                  │     embeddings       │  all-MiniLM-L6-v2
-                  └──────────┬───────────┘  → Normalized NumPy array
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │  In-Memory Retriever │  Cosine similarity
-                  │      retriever       │  over normalized vectors
-                  └──────────┬───────────┘  → List[RetrievedChunk]
-                             │
-                    User asks a question
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │  Answer Synthesizer  │  Keyword-overlap sentence
-                  │      generator       │  selection; no LLM required
-                  └──────────┬───────────┘  → ChatAnswer + SourceReferences
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │   Streamlit Chat UI  │  Answer, sources, and
-                  │        app.py        │  retrieved context
-                  └──────────────────────┘
+User uploads PDF / DOCX / image files
+              |
+              v
+   Document Registry (ingestion.py)
+   SHA-256 dedup, file-kind detection, doc-type tag
+              |
+   +----------+-----------+------------------+
+   |                      |                  |
+   v                      v                  v
+Digital Text       Geometric Table     Selective OCR +
+text_extractor.py  Detection           Plot Digitization
+                   tables.py           ingestion.py
+   |                      |                  |
+   +----------+-----------+------------------+
+              |
+              v
+   Deduplication + Chunking (persistence.py)
+   normalized signatures across extraction paths
+              |
+              v
+   Hybrid FAISS Index (retrieval.py)
+   semantic + lexical + table/key-value intent
+              |
+        User asks a question
+              |
+              v
+   Deterministic Answer Router (answer_routing.py)
+   structured field / comparison / materials / plot lookup
+              |
+       no deterministic match
+              |
+              v
+   Evidence-Gated LLM Generation
+   (generation.py / evaluation.py)
+   FLAN-T5 / OpenAI, checked against retrieved evidence
+              |
+              v
+   Gradio Chat UI (app.py)
+   answer + sources + confidence + chunk count
 ```
 
 ---
 
-## Chunking Strategies
+## Answer Routing
 
-Chunking quality affects retrieval quality. This project includes four basic chunking strategies that can be selected from the sidebar.
+Most RAG systems send every question straight to an LLM. PharmaDoc AI
+tries five deterministic routes first -- direct lookups against the
+extracted structured data -- and only falls back to generation if none
+of them match:
 
-| Strategy          | How it splits                                 | Best for                                       |
-| ----------------- | --------------------------------------------- | ---------------------------------------------- |
-| **Character**     | Exact character slices at `chunk_size`        | Fastest; acceptable when text is already clean |
-| **Word Boundary** | Snaps each boundary back to the nearest space | General purpose; avoids broken words           |
-| **Sentence**      | Groups complete sentences up to `chunk_size`  | Factual Q&A and structured prose               |
-| **Paragraph**     | Groups complete paragraphs when possible      | Longer documents, reports, and articles        |
+| Route | Handles | Example |
+|---|---|---|
+| Structured single-field | "What is the lot number of X?" | exact key-value lookup |
+| Structured multi-field | "What are the part numbers and operating temperatures?" | multi-column row lookup |
+| Comparison | "Compare the operating temperature and material for X" | cross-table join |
+| Materials | "Which material is used for the blister tray?" | component-to-material lookup |
+| Plot value | "What was the score at week 12 for the 25mg group?" | digitized chart row lookup |
+| *(fallback)* LLM generation | open-ended / narrative questions | evidence-gated FLAN-T5 |
 
-These are still intentionally simple chunking strategies. The project does not attempt semantic chunking, recursive document splitting, metadata-aware chunking, or advanced retrieval optimization.
+Deterministic routes can't hallucinate -- they either find the field in
+the extracted data or they don't. This matters most for exactly the
+questions (dosages, part numbers, lot numbers, expiration dates) where a
+wrong-but-plausible-sounding LLM answer would be the most dangerous.
 
 ---
 
 ## Project Structure
 
 ```text
-RAG-Powered-Knowledge-Assistant/
-│
-├── app.py                   # Streamlit entry point
-├── requirements.txt         # Minimal dependencies
-├── pytest.ini               # pytest configuration
-├── README.md
-│
-├── src/
-│   ├── schemas.py           # Pydantic models and ChunkingStrategy enum
-│   ├── document_loader.py   # Uploaded .txt file decoding
-│   ├── chunking.py          # Basic chunking strategies
-│   ├── embeddings.py        # SentenceTransformers wrapper
-│   ├── retriever.py         # In-memory cosine similarity retrieval
-│   ├── generator.py         # Source-grounded answer synthesis
-│   └── rag_pipeline.py      # Orchestrates ingestion and retrieval
-│
-└── tests/
-    ├── test_chunking.py
-    ├── test_document_loader.py
-    └── test_generator.py
+pharmadoc-ai/
+|
++-- pharmadoc/
+|   +-- __init__.py
+|   +-- config.py              # constants, runtime config
+|   +-- metadata.py            # content-item / document-record schemas
+|   +-- text_extractor.py      # digital text extraction + chunking
+|   +-- tables.py              # geometric table detection + classification
+|   +-- retrieval.py           # embeddings, FAISS, hybrid retrieval
+|   +-- generation.py          # source formatting, confidence, LLM calls
+|   +-- answer_routing.py      # 5 deterministic answer routes
+|   +-- ingestion.py           # registry, selective OCR, plot digitization
+|   +-- persistence.py         # dedup, save/load FAISS artifacts
+|   +-- evaluation.py          # plot routing, master answer dispatcher
+|   +-- state.py               # RAGState (explicit Gradio session state)
+|   +-- app.py                 # Gradio UI, theme, launch
+|
++-- tests/
+|   +-- conftest.py
+|   +-- fixtures/
+|   |   +-- 01_Northbridge_Bioprocess_3pages_page-000[1-3].jpg
+|   |   +-- 02_Virelion_Clinical_Trial_7pages.pdf
+|   |   +-- 01_Northbridge_Bioprocess_complete_ground_truth.txt
+|   |   +-- 02_Virelion_Clinical_Trial_7pages_ground_truth.txt
+|   +-- test_unit_extraction.py        # no models/fixtures needed
+|   +-- test_pipeline_integration.py   # real fixtures, no models needed
+|   +-- test_final_validation.py       # real fixtures + real models (slow)
+|
++-- requirements.txt
++-- pytest.ini
++-- Dockerfile
++-- .gitignore
++-- CONVERSION_NOTES.md
++-- CONVERSION_DIFF_app.patch
++-- CONVERSION_DIFF_ingestion.patch
++-- CONVERSION_DIFF_answer_routing.patch
++-- CONVERSION_DIFF_evaluation.patch
 ```
 
 ---
 
 ## Installation
 
-### 1. Clone the repository
-
 ```bash
-git clone https://github.com/drkianmaleki/RAG-Powered-Knowledge-Assistant.git
-cd RAG-Powered-Knowledge-Assistant
-```
-
-### 2. Create and activate a virtual environment
-
-```bash
+git clone <this-repo-url>
+cd pharmadoc-ai
 python -m venv venv
-```
-
-<details>
-<summary>Windows PowerShell</summary>
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-</details>
-
-<details>
-<summary>macOS / Linux</summary>
-
-```bash
-source venv/bin/activate
-```
-
-</details>
-
-### 3. Install dependencies
-
-```bash
+source venv/bin/activate   # Windows: venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-The embedding model, `sentence-transformers/all-MiniLM-L6-v2`, is downloaded automatically by SentenceTransformers on first use and cached locally for later runs.
+System dependency: `tesseract-ocr` must be installed separately (`apt-get
+install tesseract-ocr` on Debian/Ubuntu, `brew install tesseract` on
+macOS) -- it isn't a pip package. The Dockerfile handles this for you.
+
+The embedding model (`all-MiniLM-L6-v2`) and FLAN-T5 Base are downloaded
+automatically on first run and cached locally afterward.
 
 ---
 
 ## Running the App
 
 ```bash
-streamlit run app.py
+python -m pharmadoc.app
 ```
 
-Then:
+Then, in the Gradio UI: upload one or more documents, click **Process**,
+and ask a question. Each answer shows its source file/page, confidence,
+and chunk count; technical routing details are available in a collapsed
+section under each answer.
 
-1. Select a chunking strategy in the sidebar.
-2. Adjust chunk size, chunk overlap, and number of retrieved chunks if needed.
-3. Upload one or more `.txt` files.
-4. Click **Index uploaded files**.
-5. Ask a question in the chat box.
-6. Expand **Retrieved context** to inspect the source chunks used to build the answer.
+---
+
+## Running with Docker
+
+```bash
+docker build -t pharmadoc-ai .
+docker run -p 7860:7860 pharmadoc-ai
+```
 
 ---
 
 ## Configuration
 
-All settings are controlled from the Streamlit sidebar and take effect when **Index uploaded files** is clicked.
+Key defaults, set in `pharmadoc/config.py`:
 
-| Setting           |            Default |                                     Range | Description                               |
-| ----------------- | -----------------: | ----------------------------------------: | ----------------------------------------- |
-| Chunking strategy |      Word Boundary |                                         — | How text is split into chunks             |
-| Chunk size        |                900 |                       300–2500 characters | Maximum characters per chunk              |
-| Chunk overlap     |                180 |                          0–800 characters | Shared context between consecutive chunks |
-| Retrieved chunks  |                  4 |                                      1–10 | Number of chunks retrieved per question   |
-| Embedding model   | `all-MiniLM-L6-v2` | any compatible SentenceTransformers model | Embedding model identifier                |
+| Setting | Default | Description |
+|---|---|---|
+| `EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | Sentence-embedding model |
+| `LOCAL_LLM_MODEL_NAME` | `google/flan-t5-base` | Local generation model |
+| `CHUNK_SIZE` / `CHUNK_OVERLAP` | 1000 / 150 | Text chunking |
+| `DEFAULT_TOP_K` | 2 | Chunks retrieved per question |
+| `OCR_MIN_DIGITAL_CHARS` | 60 | Below this, a page is sent to OCR |
+| `OCR_RENDER_DPI` | 200 | Page render resolution for OCR |
+| `PLOT_SAMPLE_POINTS` | 30 | Points sampled per chart series |
 
-Pydantic validates settings when they are created. Invalid combinations, such as overlap greater than or equal to chunk size, are rejected with a clear error message.
+### OpenAI backend (optional)
+
+The answer-generation model dropdown offers two choices:
+
+- **Open-source — FLAN-T5 Base** (default): runs fully locally, no API key needed, downloaded automatically on first use.
+- **OpenAI — GPT-4o mini**: calls the OpenAI API using the `gpt-4o-mini` model. Better for open-ended narrative questions; requires a paid API key.
+
+To enable the OpenAI option, set the `OPENAI_API_KEY` environment variable before launching the app:
+
+**macOS / Linux:**
+```bash
+export OPENAI_API_KEY="sk-..."
+python -m pharmadoc.app
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:OPENAI_API_KEY = "sk-..."
+python -m pharmadoc.app
+```
+
+**`.env` file (persistent across sessions):**
+
+Create a file named `.env` in the project root (it is already listed in `.gitignore` and will not be committed):
+```
+OPENAI_API_KEY=sk-...
+```
+Then load it before running — for example with `python-dotenv`:
+```bash
+pip install python-dotenv
+```
+```python
+from dotenv import load_dotenv
+load_dotenv()
+```
+Or simply set the variable in your shell profile so it is always available.
+
+If no key is found when OpenAI is selected, the app returns a clear message asking you to add the key rather than raising an error, so selecting OpenAI without a key is safe — it just won't generate an answer.
 
 ---
 
 ## Running Tests
 
 ```bash
+# Fast: unit tests + real-PDF pipeline tests, no models needed
+pytest tests -v -m "not needs_models"
+
+# Full: also runs the model-dependent end-to-end validation
+# (needs internet access to download the embedding + FLAN-T5 models)
 pytest tests -v
 ```
 
-The test suite covers:
+All fixture documents are included in the repository, so the full test
+suite runs immediately after cloning with no additional file setup.
 
-* text chunking behavior
-* chunking edge cases
-* document loading
-* answer synthesis
-* source attribution
+### Test fixtures
+
+The `tests/fixtures/` directory contains six files. Their status and purpose differ:
+
+**Document fixtures — included in the repository:**
+
+| File | Used in tests | Purpose |
+|---|---|---|
+| `01_Northbridge_Bioprocess_3pages_page-0001.jpg` | Yes — `test_pipeline_integration.py`, `test_final_validation.py` | Borderless OCR table; burst pressure result |
+| `01_Northbridge_Bioprocess_3pages_page-0002.jpg` | `test_pipeline_integration.py` only | Bordered table; flow coefficient release spec |
+| `01_Northbridge_Bioprocess_3pages_page-0003.jpg` | `test_pipeline_integration.py` only | Bordered image-only OCR table; port concentricity |
+| `02_Virelion_Clinical_Trial_7pages.pdf` | Yes — both integration and validation | 7-page mixed PDF: tables, narrative, chart, OCR page |
+
+All four document files are synthetic (see the notice at the top of this README) and are committed to the repository so that the full test suite runs immediately after cloning with no manual setup.
+
+**Ground truth files — committed to the repository:**
+
+| File | Used in tests | Purpose |
+|---|---|---|
+| `01_Northbridge_Bioprocess_complete_ground_truth.txt` | Not directly | Full human-readable ground truth for all 3 Northbridge pages: exact table values, section text, headers, and product metadata. Reference for writing new tests. |
+| `02_Virelion_Clinical_Trial_7pages_ground_truth.txt` | Not directly | Full human-readable ground truth for all 7 Virelion pages: tables, narrative, plot data (including the exact week-by-week values for the chart on page 3), and the OCR-only page. Reference for writing new tests. |
+
+The ground truth files document the complete expected content of each fixture document so that anyone reading the repo can understand what the documents contain and write their own tests.
 
 ---
 
 ## Design Decisions
 
-### No LLM-based answer generation
+### Deterministic-first answer routing
+See [Answer Routing](#answer-routing) above. Generation is the fallback,
+not the default.
 
-The answer synthesizer selects and combines sentences from retrieved chunks based on keyword overlap with the user query. This keeps the project fully inspectable and avoids unsupported generation.
+### Explicit `RAGState`, not module globals
+Gradio session state is threaded explicitly through `gr.State()` rather
+than relying on bare module-level globals -- see
+[Conversion Notes](#conversion-notes) for why this mattered.
 
-Every word in the answer comes from retrieved document context.
+### Selective OCR, not OCR-everything
+Running Tesseract on every page is slow and noisy. Pages with sufficient
+extractable digital text skip OCR entirely; only image-only/scanned pages
+go through it.
 
-### In-memory retrieval
-
-Uploaded documents are embedded and stored in memory for the current Streamlit session. Cosine similarity is computed as a dot product over normalized embeddings.
-
-This is simple and appropriate for a basic RAG demonstration.
-
-### Pydantic v2 throughout
-
-The main data objects are Pydantic models:
-
-* `UploadedDocument`
-* `TextChunk`
-* `RetrievedChunk`
-* `SourceReference`
-* `ChatAnswer`
-* `RAGSettings`
-
-This keeps the code more explicit, typed, and maintainable.
-
-### Local-first design
-
-The app does not require an API key. After the embedding model is downloaded once, the app can run locally without external model API calls.
+### Deduplication across extraction paths
+The same content can surface through digital text extraction, table
+detection, and OCR simultaneously on a mixed-format page. Items are
+deduplicated by normalized signature before indexing.
 
 ---
 
 ## Limitations
 
-This is a basic RAG demonstration, not a production RAG system.
-
-Current limitations:
-
-* Supports `.txt` files only.
-* Works best with small to medium documents.
-* The index is stored in memory and is not persisted after the session ends.
-* The answer generation is extractive and simple.
-* Complex reasoning and multi-hop questions may not work well.
-* No PDF, DOCX, HTML, or web page support.
-* No persistent vector database.
-* No reranking.
-* No hybrid keyword/vector retrieval.
-* No metadata filtering.
-* No LLM-based response generation.
-* No authentication or deployment infrastructure.
+* Plot digitization is approximate (pixel-position sampling), not exact
+  data recovery -- answers from the plot route are labeled accordingly.
+* OCR quality depends on scan resolution and is not perfect on low-quality
+  scans.
+* Single-process, single-session state by default (no multi-user database
+  backing `RAGState` between server restarts).
+* Local FLAN-T5 Base is a small model; complex multi-hop reasoning
+  questions are better served by the optional OpenAI backend.
 
 ---
 
-## Roadmap
+## Conversion Notes
 
-Potential enhancements for a more advanced future version:
-
-* [ ] PDF and DOCX support
-* [ ] Persistent vector storage with ChromaDB or FAISS
-* [ ] Hybrid retrieval using dense embeddings and sparse keyword search
-* [ ] Reranking with a cross-encoder
-* [ ] LLM-based answer generation
-* [ ] Citation-aware response formatting
-* [ ] Retrieval evaluation metrics
-* [ ] Docker packaging
-* [ ] GitHub Actions CI
-* [ ] Deployment
-* [ ] Multi-user session isolation
-* [ ] Monitoring and observability
-
----
-
-## Professional Focus
-
-This project demonstrates the basic mechanics of RAG in a clear and inspectable way:
-
-* document upload
-* chunking
-* embeddings
-* semantic retrieval
-* source-grounded answering
-* Streamlit app development
-* Pydantic validation
-* simple test coverage
-
-It is intended as a foundational RAG project before building a more advanced retrieval system.
+This package was converted from an original Jupyter notebook via a
+scripted, diff-verified, byte-for-byte extraction process -- not manual
+retyping. See [`CONVERSION_NOTES.md`](CONVERSION_NOTES.md) for the full
+audit trail: exactly which notebook cells map to which files, the five
+deliberate code changes (and the root-cause diagnosis behind each), and
+the issues found by actually running the converted code against real
+documents. Four diff files accompany the package
+(`CONVERSION_DIFF_*.patch`) covering every approved change across
+`app.py`, `ingestion.py`, `answer_routing.py`, and `evaluation.py`.

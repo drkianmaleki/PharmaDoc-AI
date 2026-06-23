@@ -1,0 +1,212 @@
+DOCUMENT TITLE: Elarovex (tasmedorin sodium) Phase III Clinical Study Summary
+COMPANY: Virelion Therapeutics
+PROTOCOL: VRT-ELX-301
+PRODUCT: Elarovex (tasmedorin sodium)
+DOCUMENT STATUS: SYNTHETIC TEST DATA | Not for regulatory or commercial use
+
+PAGE 1
+
+HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TITLE
+Elarovex (tasmedorin sodium)
+
+SUBTITLE
+Phase III Clinical Study Summary | Protocol VRT-ELX-301
+
+STUDY DESCRIPTION
+Randomized, double-blind, placebo-controlled, parallel-group study in painful diabetic peripheral neuropathy
+
+SECTION: Executive Summary
+This synthetic report summarizes efficacy, safety, pharmacokinetic, and patient-reported outcome findings for Elarovex, a selective Nav1.7 state-dependent inhibitor. Adults with painful diabetic peripheral neuropathy were randomized 1:1:1 to placebo, Elarovex 20 mg once daily, or Elarovex 40 mg once daily for 12 weeks.
+
+TABLE: Participant Disposition
+Treatment arm | Randomized | Completed | Primary analysis set
+Placebo | 216 | 204 | 212
+Elarovex 20 mg | 212 | 199 | 208
+Elarovex 40 mg | 218 | 201 | 214
+
+SECTION: Primary Endpoint
+The primary endpoint was change from baseline to Week 12 in the seven-day mean Neuropathic Symptom Index (NSI), analyzed using a mixed model for repeated measures with fixed effects for treatment, visit, geographic region, baseline score, and treatment-by-visit interaction.
+
+PAGE 2
+
+HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TITLE
+Study Design and Statistical Analysis Plan
+
+TABLE: Design Elements
+Design element | Specification
+Population | Adults 18-80 years with HbA1c <=10.0% and NSI >=6.0
+Randomization | Interactive response technology; stratified by region and baseline pain
+Blinding | Double-dummy masking with matched placebo tablets
+Multiplicity | Graphical gatekeeping across primary and key secondary endpoints
+Missing data | Likelihood-based MMRM; tipping-point sensitivity analysis
+
+SECTION: Estimand Framework
+The treatment-policy estimand included efficacy observations regardless of temporary interruption or rescue-medication use. Permanent discontinuation was addressed under a missing-at-random assumption in the primary analysis and under reference-based controlled multiple imputation in sensitivity analyses.
+
+TABLE: Endpoint Testing Strategy
+Endpoint | Contrast | Alpha allocation
+Week 12 NSI change | 40 mg vs placebo | 0.025
+Week 12 NSI change | 20 mg vs placebo | 0.025
+>=50% responder rate | Sequential testing | Recycled alpha
+Sleep interference | Sequential testing | Recycled alpha
+
+PAGE 3 - PLOT PAGE
+
+PAGE HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+PAGE TITLE
+Efficacy Trajectory
+
+EMBEDDED PLOT IMAGE
+This page contains a raster plot image intentionally designed to visually match the plot style in the provided Fake_document_generated_by_gemini_for_testing_codes PDF. The plotted values are not repeated in a visible table on the page. The data below are provided only as ground truth for OCR/plot-extraction evaluation.
+
+PLOT TITLE
+Mean Neuropathy Symptom Score (NSS) Over 12 Weeks
+
+X-AXIS LABEL
+Trial Duration (Weeks)
+
+Y-AXIS LABEL
+Symptom Score (0-10, lower is better)
+
+LEGEND
+Placebo (n=215)
+Luminara 25mg (n=210)
+Luminara 50mg (n=225)
+
+PLOT DATA: Mean Neuropathy Symptom Score (NSS)
+Week | Placebo | Luminara 25mg | Luminara 50mg
+0 | 8.5 | 8.5 | 8.5
+2 | 8.2 | 7.5 | 7.0
+4 | 8.0 | 6.2 | 5.4
+6 | 7.8 | 5.4 | 4.1
+8 | 7.7 | 4.8 | 3.0
+10 | 7.5 | 4.1 | 2.2
+12 | 7.4 | 3.8 | 1.8
+
+FIGURE CAPTION
+Figure 1. Mean Neuropathy Symptom Score (NSS) over the 12-week trial duration. Lower scores indicate greater symptom relief. Error bars are omitted for visual clarity.
+
+PAGE FOOTER
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+PAGE 4
+
+HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TITLE
+Confirmatory Efficacy Results
+
+TABLE: Confirmatory Efficacy Results
+Endpoint | Placebo | 20 mg | 40 mg | Adjusted comparison
+NSI change at Week 12 | -1.1 | -4.6 | -6.6 | Both doses p<0.001
+>=30% responder | 29.7% | 61.5% | 76.2% | Risk difference significant
+>=50% responder | 14.6% | 43.8% | 67.8% | Hierarchical criterion met
+Sleep interference change | -0.8 | -2.9 | -4.1 | Multiplicity controlled
+
+SECTION: Subgroup Consistency
+Treatment effects were directionally consistent across age, sex, baseline glycemic control, geographic region, baseline NSI severity, and concomitant gabapentinoid-use strata. No qualitative treatment-by-subgroup interaction was detected after shrinkage adjustment for multiplicity.
+
+TABLE: Subgroup Consistency
+Subgroup | 40 mg treatment difference | 95% CI
+Age <65 years | -5.4 | -6.1 to -4.7
+Age >=65 years | -5.1 | -6.0 to -4.2
+HbA1c <8% | -5.5 | -6.2 to -4.8
+HbA1c >=8% | -4.9 | -5.8 to -4.0
+
+PAGE 5 - IMAGE-ONLY OCR PAGE
+
+PAGE HEADER OUTSIDE IMAGE
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TEXT INSIDE IMAGE
+CENTRAL LABORATORY SAFETY REVIEW
+
+Hepatic and Renal Surveillance
+Treatment-emergent laboratory shifts were adjudicated using prespecified Hy's law screening logic and estimated glomerular filtration rate categories.
+
+No participant met concurrent alanine aminotransferase greater than three times ULN and total bilirubin greater than two times ULN without an alternative etiology.
+
+Electrocardiographic Assessment
+Concentration-QTc modeling did not identify a clinically relevant positive slope. The upper bound of the two-sided 90% confidence interval remained below 10 ms.
+
+TABLE INSIDE IMAGE: Central Laboratory Safety Review
+Parameter | Placebo | 20 mg | 40 mg
+ALT >3x ULN | 0.5% | 1.0% | 0.9%
+Creatinine shift | 1.4% | 1.9% | 2.3%
+QTcF >480 ms | 0.0% | 0.0% | 0.5%
+
+IMAGE FOOTER
+Synthetic test record - Image-only OCR page
+
+PAGE FOOTER
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+PAGE 6
+
+HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TITLE
+Treatment-Emergent Adverse Events
+
+SUBTITLE
+Safety population and exposure-adjusted interpretation
+
+TABLE: Treatment-Emergent Adverse Events
+System organ class / preferred term | Placebo | 20 mg | 40 mg
+Nervous system disorders |  |  |
+Dizziness | 4.2% | 8.7% | 14.0%
+Somnolence | 3.8% | 7.2% | 11.7%
+Gastrointestinal disorders |  |  |
+Nausea | 5.2% | 6.3% | 8.4%
+Dry mouth | 2.4% | 4.8% | 7.0%
+General disorders |  |  |
+Fatigue | 6.1% | 8.2% | 9.8%
+
+SECTION: Adverse Events of Special Interest
+Potential events of abuse, suicidality, severe cutaneous reaction, clinically important conduction abnormality, and drug-induced liver injury were prospectively adjudicated by blinded committees. No confirmed abuse-related signal or Hy's law case was identified.
+
+TABLE: Disposition
+Disposition | Placebo | 20 mg | 40 mg
+Any discontinuation | 5.6% | 6.1% | 9.2%
+Discontinuation due to AE | 4.6% | 5.3% | 8.8%
+Serious adverse event | 1.9% | 2.4% | 2.8%
+
+PAGE 7
+
+HEADER
+Virelion Therapeutics
+SYNTHETIC TEST DATA | VRT-ELX-301 | Not for regulatory or commercial use
+
+TITLE
+Clinical Pharmacology and Integrated Conclusion
+
+SECTION: Population Pharmacokinetics
+A two-compartment disposition model with first-order absorption and elimination adequately described plasma concentration-time data. Apparent clearance increased modestly with body weight, but simulations showed no clinically meaningful exposure imbalance across the evaluated weight range. Mild renal impairment increased area under the curve by approximately 18%, below the prespecified dose-adjustment threshold.
+
+TABLE: Pharmacokinetics
+Parameter | 20 mg | 40 mg
+Geometric mean Cmax | 118 ng/mL | 229 ng/mL
+Geometric mean AUC0-24 | 1260 ng*h/mL | 2485 ng*h/mL
+Median Tmax | 2.1 h | 2.0 h
+Terminal half-life | 11.8 h | 12.2 h
+
+SECTION: Integrated Benefit-Risk Conclusion
+Elarovex produced dose-responsive, clinically meaningful reductions in neuropathic symptom burden with supportive improvements in sleep interference and responder outcomes. The safety profile was characterized primarily by reversible dizziness and somnolence, with no identified hepatic, renal, electrocardiographic, or abuse-liability signal that outweighed the observed efficacy benefit.
+
+Synthetic conclusion: the 40 mg regimen demonstrated the greatest efficacy; the 20 mg regimen provided a lower-incidence tolerability option. All names, data, and conclusions are fictional.

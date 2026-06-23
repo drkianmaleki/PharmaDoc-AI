@@ -1,0 +1,182 @@
+--- original_notebook_cells_[44, 45, 46, 47, 49].py
++++ app.py_after_approved_patch.py
+@@ -177,54 +177,50 @@
+     return result
+ 
+ 
+-def process_uploaded_documents_for_gradio(uploaded_files, enable_ocr, enable_plot_extraction, persist_after_processing):
+-    global file_paths, document_registry, all_content_items, chunked_content_items
+-    global all_table_items, all_ocr_items, all_plot_items, rag_content_items
+-    global faiss_index, chunk_embeddings, document_centroids
+-
+-    file_paths = normalize_uploaded_paths(uploaded_files)
++def process_uploaded_documents_for_gradio(uploaded_files, enable_ocr, enable_plot_extraction, persist_after_processing, state):
++    state.file_paths = normalize_uploaded_paths(uploaded_files)
+     empty = (
+         gr.update(choices=["All documents"], value="All documents"),
+         gr.update(choices=["All types"], value="All types"),
+         gr.update(choices=["All content"], value="All content"),
+     )
+-    if not file_paths:
+-        return ("Please upload at least one supported file.", "No documents processed yet.", *empty)
++    if not state.file_paths:
++        return ("Please upload at least one supported file.", "No documents processed yet.", *empty, state)
+ 
+     try:
+         result = process_documents(
+-            file_paths, bool(enable_ocr), bool(enable_plot_extraction), bool(persist_after_processing)
++            state.file_paths, bool(enable_ocr), bool(enable_plot_extraction), bool(persist_after_processing)
+         )
+-        document_registry = result["document_registry"]
+-        all_content_items = result["all_content_items"]
+-        chunked_content_items = result["chunked_content_items"]
+-        all_table_items = result["all_table_items"]
+-        all_ocr_items = result["all_ocr_items"]
+-        all_plot_items = result["all_plot_items"]
+-        rag_content_items = result["rag_content_items"]
+-        faiss_index = result["faiss_index"]
+-        chunk_embeddings = result["chunk_embeddings"]
+-        document_centroids = result["document_centroids"]
++        state.document_registry = result["document_registry"]
++        state.all_content_items = result["all_content_items"]
++        state.chunked_content_items = result["chunked_content_items"]
++        state.all_table_items = result["all_table_items"]
++        state.all_ocr_items = result["all_ocr_items"]
++        state.all_plot_items = result["all_plot_items"]
++        state.rag_content_items = result["rag_content_items"]
++        state.faiss_index = result["faiss_index"]
++        state.chunk_embeddings = result["chunk_embeddings"]
++        state.document_centroids = result["document_centroids"]
+ 
+         counts = defaultdict(int)
+-        for item in rag_content_items:
++        for item in state.rag_content_items:
+             counts[item["content_type"]] += 1
+         status = [
+             "Processing complete.",
+-            f"Documents processed: {len(document_registry)}",
++            f"Documents processed: {len(state.document_registry)}",
+             f"Text chunks: {counts['text']}",
+             f"Digital tables: {counts['table']}",
+             f"OCR text chunks: {counts['ocr_text']}",
+             f"OCR tables: {counts['ocr_table']}",
+             f"Plot-derived tables: {counts['plot_table']}",
+-            f"Total indexed items: {len(rag_content_items)}",
+-            f"FAISS vectors: {faiss_index.ntotal}",
++            f"Total indexed items: {len(state.rag_content_items)}",
++            f"FAISS vectors: {state.faiss_index.ntotal}",
+         ]
+         if result.get("persisted_to"):
+             status.append(f"Artifacts saved to: {result['persisted_to']}")
+         warnings = [
+             f"{record['file']}: {warning}"
+-            for record in document_registry.values()
++            for record in state.document_registry.values()
+             for warning in record.get("warnings", [])
+         ]
+         if warnings:
+@@ -233,15 +229,16 @@
+ 
+         return (
+             "\n".join(status),
+-            format_document_registry_summary(document_registry),
+-            gr.update(choices=get_document_filter_choices(document_registry), value="All documents"),
+-            gr.update(choices=get_doc_type_filter_choices(document_registry), value="All types"),
+-            gr.update(choices=get_content_type_filter_choices(rag_content_items), value="All content"),
++            format_document_registry_summary(state.document_registry),
++            gr.update(choices=get_document_filter_choices(state.document_registry), value="All documents"),
++            gr.update(choices=get_doc_type_filter_choices(state.document_registry), value="All types"),
++            gr.update(choices=get_content_type_filter_choices(state.rag_content_items), value="All content"),
++            state,
+         )
+     except Exception as error:
+-        faiss_index = None
+-        rag_content_items = []
+-        return (f"Processing failed: {type(error).__name__}: {error}", "No searchable index was created.", *empty)
++        state.faiss_index = None
++        state.rag_content_items = []
++        return (f"Processing failed: {type(error).__name__}: {error}", "No searchable index was created.", *empty, state)
+ 
+ 
+ #@title CELL 31 — Gradio chat handler
+@@ -307,13 +304,14 @@
+     document_filter,
+     doc_type_filter,
+     content_type_filter,
++    state,
+ ):
+     history = list(history or [])
+ 
+     if not message or not message.strip():
+         return history, ""
+ 
+-    if faiss_index is None or not rag_content_items:
++    if state.faiss_index is None or not state.rag_content_items:
+         history.extend([
+             {"role": "user", "content": message},
+             {
+@@ -336,8 +334,8 @@
+         result = answer_question_with_rag(
+             question=message,
+             model_choice=model_choice,
+-            faiss_index=faiss_index,
+-            content_items=rag_content_items,
++            faiss_index=state.faiss_index,
++            content_items=state.rag_content_items,
+             embedding_model=embedding_model,
+             top_k=int(top_k),
+             document_filter=document_filter,
+@@ -1291,6 +1289,8 @@
+                 """
+             )
+ 
++    app_state = gr.State(RAGState())
++
+     process_button.click(
+         fn=process_uploaded_documents_for_gradio,
+         inputs=[
+@@ -1298,6 +1298,7 @@
+             enable_ocr,
+             enable_plot_extraction,
+             persist_after_processing,
++            app_state,
+         ],
+         outputs=[
+             processing_status,
+@@ -1305,6 +1306,7 @@
+             document_filter,
+             doc_type_filter,
+             content_type_filter,
++            app_state,
+         ],
+     )
+ 
+@@ -1318,6 +1320,7 @@
+             document_filter,
+             doc_type_filter,
+             content_type_filter,
++            app_state,
+         ],
+         outputs=[
+             chatbot,
+@@ -1335,6 +1338,7 @@
+             document_filter,
+             doc_type_filter,
+             content_type_filter,
++            app_state,
+         ],
+         outputs=[
+             chatbot,
+@@ -1358,7 +1362,8 @@
+     )
+ 
+ 
+-demo.queue().launch(
+-    share=True,
+-)
+-
++if __name__ == "__main__":
++    demo.queue().launch(
++        share=True,
++    )
++

@@ -1,57 +1,37 @@
-# Python
+# --- Test run artifacts ---
+test_output.txt
+
+# --- Runtime artifacts (FAISS index, embeddings, persisted state) ---
+rag_artifacts/
+/content/
+
+# --- Python ---
 __pycache__/
 *.py[cod]
-*.pyo
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.mypy_cache/
-.ruff_cache/
-dist/
-build/
+*$py.class
 *.egg-info/
-*.egg
+.eggs/
+build/
+dist/
 
-# Virtual environments
+# --- Virtual environments ---
 .venv/
 venv/
 env/
-ENV/
 
-# Environment / secrets
+# --- Testing / tooling caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Secrets ---
 .env
-.env.*
-!.env.example
+*.env
 
-# Streamlit
-.streamlit/secrets.toml
-
-# Local/private files
-data/private_docs/
-uploads/
-vector_store/
-
-# Vector DB & model artifacts
-chroma_db/
-chromadb/
-*.faiss
-*.index
-*.pkl
-*.npy
-models/
-model_cache/
-
-# Logs
-*.log
-logs/
-
-# OS/editor
-.DS_Store
-Thumbs.db
-desktop.ini
+# --- IDE / OS ---
 .vscode/
 .idea/
-
-# Jupyter
-.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
