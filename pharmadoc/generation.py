@@ -149,11 +149,10 @@ def estimate_retrieval_confidence(retrieved_chunks):
 
 
 def load_optional_api_keys():
-    """Load optional API keys without failing outside Colab."""
+    """Load API keys from Colab Secrets if running in Colab; no-op otherwise."""
     try:
         from google.colab import userdata
     except ImportError:
-        print("Not running in Colab; optional API keys were not loaded.")
         return
 
     for key_name in ["OPENAI_API_KEY"]:
@@ -161,11 +160,8 @@ def load_optional_api_keys():
             value = userdata.get(key_name)
             if value:
                 os.environ[key_name] = value
-                print(f"Loaded {key_name}.")
-            else:
-                print(f"{key_name} is not configured.")
         except Exception:
-            print(f"{key_name} is not configured.")
+            pass
 
 
 load_optional_api_keys()
@@ -263,8 +259,8 @@ def generate_with_openai(
 
     if not api_key:
         return (
-            "OpenAI API key was not found. Add OPENAI_API_KEY "
-            "to Colab Secrets or select the open-source model."
+            "OpenAI API key not found. Set the OPENAI_API_KEY environment "
+            "variable or select the open-source model."
         )
 
     from openai import OpenAI

@@ -38,6 +38,21 @@
 
 ---
 
+## Portfolio Summary
+
+This project demonstrates production-style document AI engineering across
+the full stack: multi-format ingestion (PDF, DOCX, images, spreadsheets,
+CSV), geometric table detection, selective OCR, line-chart digitization,
+hybrid FAISS retrieval, deterministic answer routing before any LLM call,
+evidence-gated generation with confidence scoring, Gradio deployment,
+Docker packaging, and a three-tier pytest validation suite. The domain
+is pharmaceutical and regulatory documents, where answer reliability
+matters more than coverage.
+
+---
+
+* [Screenshots](#screenshots)
+* [Portfolio Summary](#portfolio-summary)
 * [Overview](#overview)
 * [Features](#features)
 * [How It Works](#how-it-works)

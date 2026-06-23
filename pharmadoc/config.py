@@ -7,34 +7,10 @@ directory. Override PHARMADOC_PERSIST_DIR to change where FAISS artifacts
 are written.
 """
 
-
-
 import os
-import re
-import io
-import json
-import math
-import time
-import uuid
-import hashlib
-import shutil
 import platform
 from pathlib import Path
-from collections import defaultdict
-from difflib import SequenceMatcher
 from importlib.metadata import version, PackageNotFoundError
-
-import fitz
-import faiss
-import numpy as np
-import pandas as pd
-import gradio as gr
-import cv2
-import pytesseract
-
-from PIL import Image
-from docx import Document
-from sentence_transformers import SentenceTransformer
 
 
 def get_installed_version(package_name):

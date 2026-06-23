@@ -1,11 +1,9 @@
 """
 Shared pytest fixtures for the PharmaDoc AI test suite.
 
-The 4 real sample documents live in tests/fixtures/ but are excluded from
-git (see .gitignore) -- they are sample documents, not something to
-publish. Tests that need them skip cleanly with a clear message if they
-are absent, rather than failing or erroring, so the rest of the suite
-still runs in CI / on a fresh clone.
+All 4 sample documents are included in the repository under tests/fixtures/
+and are available immediately after cloning. Tests that need them will
+run without any manual setup.
 """
 import sys
 from pathlib import Path
@@ -109,16 +107,16 @@ def _fixture_paths():
 
 @pytest.fixture(scope="session")
 def fixture_doc_paths():
-    """The 4 real test documents, as absolute paths. Skips the test if
-    any are missing (e.g. on a fresh clone where they were never copied
-    into tests/fixtures/ locally -- they are gitignored on purpose)."""
+    """The 4 sample documents as absolute paths. All are committed to the
+    repository and present immediately after cloning. Skips cleanly if a
+    file is unexpectedly absent."""
     paths = _fixture_paths()
     missing = [p.name for p in paths if not p.exists()]
     if missing:
         pytest.skip(
-            "Real test documents not present in tests/fixtures/ (gitignored, "
-            f"not part of the repo): missing {missing}. Copy the 4 sample "
-            "documents into tests/fixtures/ locally to run this test."
+            f"Sample documents missing from tests/fixtures/: {missing}. "
+            "These files should be present after cloning — check that the "
+            "repository was cloned correctly."
         )
     return [str(p) for p in paths]
 
