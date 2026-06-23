@@ -38,7 +38,6 @@
 * [Running Tests](#running-tests)
 * [Design Decisions](#design-decisions)
 * [Limitations](#limitations)
-* [Conversion Notes](#conversion-notes)
 
 ---
 
@@ -192,11 +191,6 @@ pharmadoc-ai/
 +-- pytest.ini
 +-- Dockerfile
 +-- .gitignore
-+-- CONVERSION_NOTES.md
-+-- CONVERSION_DIFF_app.patch
-+-- CONVERSION_DIFF_ingestion.patch
-+-- CONVERSION_DIFF_answer_routing.patch
-+-- CONVERSION_DIFF_evaluation.patch
 ```
 
 ---
@@ -345,8 +339,8 @@ not the default.
 
 ### Explicit `RAGState`, not module globals
 Gradio session state is threaded explicitly through `gr.State()` rather
-than relying on bare module-level globals -- see
-[Conversion Notes](#conversion-notes) for why this mattered.
+than relying on bare module-level globals, which do not survive across
+concurrent sessions in a multi-user Gradio deployment.
 
 ### Selective OCR, not OCR-everything
 Running Tesseract on every page is slow and noisy. Pages with sufficient
@@ -370,17 +364,3 @@ deduplicated by normalized signature before indexing.
   backing `RAGState` between server restarts).
 * Local FLAN-T5 Base is a small model; complex multi-hop reasoning
   questions are better served by the optional OpenAI backend.
-
----
-
-## Conversion Notes
-
-This package was converted from an original Jupyter notebook via a
-scripted, diff-verified, byte-for-byte extraction process -- not manual
-retyping. See [`CONVERSION_NOTES.md`](CONVERSION_NOTES.md) for the full
-audit trail: exactly which notebook cells map to which files, the five
-deliberate code changes (and the root-cause diagnosis behind each), and
-the issues found by actually running the converted code against real
-documents. Four diff files accompany the package
-(`CONVERSION_DIFF_*.patch`) covering every approved change across
-`app.py`, `ingestion.py`, `answer_routing.py`, and `evaluation.py`.
