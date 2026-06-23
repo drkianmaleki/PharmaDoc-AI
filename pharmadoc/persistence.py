@@ -1,15 +1,11 @@
 """
-pharmadoc/persistence.py
+Deduplication, FAISS persistence, and scaling helpers for PharmaDoc AI.
 
-Section 9 - Persistence and scaling helpers
-Source notebook cells: [38]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Deduplicates content items by normalized signature, computes per-document
+centroid embeddings for metadata filtering, and saves/loads the FAISS
+index and content-item store to disk.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 from pathlib import Path
 from collections import defaultdict
 import faiss
@@ -17,14 +13,11 @@ import hashlib
 import json
 import numpy as np
 
-# --- cross-module imports (this package's own files) ---
 from .config import PERSIST_DIR
 from .retrieval import normalize_retrieval_text
 
-# ===== NOTEBOOK CELLS [38] (verbatim) =====
 
 
-#@title CELL 28F — Deduplication, persistence, and scaling helpers
 
 def normalized_item_signature(item):
     text = normalize_retrieval_text(item.get("text_for_embedding", ""))

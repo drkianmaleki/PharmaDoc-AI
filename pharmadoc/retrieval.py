@@ -1,24 +1,17 @@
 """
-pharmadoc/retrieval.py
+Embeddings, FAISS indexing, and hybrid retrieval for PharmaDoc AI.
 
-Section 5 - Embeddings, FAISS, and hybrid retrieval
-Source notebook cells: [20, 21, 22, 23]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Loads the sentence-transformer embedding model, builds and queries the FAISS
+index, applies metadata filters, and re-ranks results using hybrid
+keyword and semantic scoring.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 from sentence_transformers import SentenceTransformer
 import faiss
 
-# --- cross-module imports (this package's own files) ---
 from .config import DEFAULT_TOP_K, EMBEDDING_MODEL_NAME, SUPPORTED_CONTENT_TYPES
 
-# ===== NOTEBOOK CELLS [20, 21, 22, 23] (verbatim) =====
 
-#@title CELL 15 — Load the embedding model
 
 def load_embedding_model(model_name=EMBEDDING_MODEL_NAME):
     print(f"Loading embedding model: {model_name}")
@@ -30,7 +23,6 @@ def load_embedding_model(model_name=EMBEDDING_MODEL_NAME):
 embedding_model = load_embedding_model()
 
 
-#@title CELL 16 — Build the FAISS index
 
 def build_faiss_index(content_items, embedding_model):
     """Create a normalized inner-product FAISS index."""
@@ -65,7 +57,6 @@ def build_faiss_index(content_items, embedding_model):
     return index, embeddings
 
 
-#@title CELL 17 — Retrieve relevant content
 
 def retrieve_relevant_chunks(
     question,
@@ -119,7 +110,6 @@ def retrieve_relevant_chunks(
     return retrieved
 
 
-#@title CELL 18 — Hybrid retrieval reranking and deduplication
 
 import re
 from difflib import SequenceMatcher

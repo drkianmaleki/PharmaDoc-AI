@@ -1,17 +1,13 @@
 """
-pharmadoc/config.py
+Configuration, constants, and runtime environment for PharmaDoc AI.
 
-Section 1 - Environment and configuration
-Source notebook cells: [3, 4]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+All tuneable parameters are centralised here: embedding model, chunking
+settings, LLM model catalog, supported content types, and the persistence
+directory. Override PHARMADOC_PERSIST_DIR to change where FAISS artifacts
+are written.
 """
 
-# ===== NOTEBOOK CELLS [3, 4] (verbatim) =====
 
-#@title CELL 02 — Imports and dependency version report
 
 import os
 import re
@@ -70,7 +66,6 @@ for package_name, package_version in DEPENDENCY_VERSIONS.items():
     print(f"- {package_name}: {package_version}")
 
 
-#@title CELL 03 — Configuration and runtime state
 
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 LOCAL_LLM_MODEL_NAME = "google/flan-t5-base"
@@ -83,7 +78,7 @@ OCR_MIN_DIGITAL_CHARS = 60
 OCR_RENDER_DPI = 200
 OCR_MIN_CONFIDENCE = 35.0
 PLOT_SAMPLE_POINTS = 30
-PERSIST_DIR = Path("/content/rag_artifacts")
+PERSIST_DIR = Path(os.getenv("PHARMADOC_PERSIST_DIR", "rag_artifacts"))
 
 SUPPORTED_CONTENT_TYPES = [
     "text",

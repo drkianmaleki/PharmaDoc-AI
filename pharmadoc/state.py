@@ -1,13 +1,9 @@
 """
-pharmadoc/state.py
+Session state container for PharmaDoc AI's Gradio application.
 
-NEW FILE - not from the notebook. Defines RAGState, an explicit container
-for the document-processing session state that the original notebook held
-as bare module-level globals (see the placeholder values at the end of
-notebook CELL 03, preserved verbatim in config.py). Default values below
-mirror those originals exactly. This is the user-approved replacement for
-the `global` statements that do not survive a notebook -> multi-file
-package conversion.
+RAGState is an explicit dataclass that holds all document-processing
+session data. Threading state explicitly through Gradio's gr.State()
+ensures correct behaviour in multi-user server deployments.
 """
 from dataclasses import dataclass, field
 from typing import Any, Optional

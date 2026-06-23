@@ -1,24 +1,17 @@
 """
-pharmadoc/tables.py
+Geometric table detection, classification, and extraction for PharmaDoc AI.
 
-Section 4 - Structured table extraction
-Source notebook cells: [14, 15, 16, 17, 18]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Detects tables using line-geometry analysis, classifies them as key-value
+or header-row structures, extracts cell content, and produces RAG content
+items. Includes a PyMuPDF find_tables fallback for complex layouts.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 import fitz
 import re
 
-# --- cross-module imports (this package's own files) ---
 from .metadata import create_content_item
 
-# ===== NOTEBOOK CELLS [14, 15, 16, 17, 18] (verbatim) =====
 
-#@title CELL 10 — Table classification and formatting helpers
 
 TABLE_CONFIG = {
     "TOLERANCE": 3,
@@ -332,7 +325,6 @@ def combine_bboxes(bboxes):
     ]
 
 
-#@title CELL 11 — Primary geometric table detector
 
 def cluster_column_positions(table_rows, x_tolerance):
     """
@@ -560,7 +552,6 @@ def detect_geometric_tables_on_page(page):
     return detected_tables
 
 
-#@title CELL 12 — PyMuPDF find_tables fallback
 
 def detect_tables_with_pymupdf_fallback(page):
     """
@@ -609,7 +600,6 @@ def detect_tables_with_pymupdf_fallback(page):
     return fallback_tables
 
 
-#@title CELL 13 — Page table detector with conservative header recovery and strict fallback
 
 
 def first_row_looks_like_data(matrix):
@@ -993,7 +983,6 @@ def detect_tables_on_page(page):
     return detect_tables_with_pymupdf_fallback(page)
 
 
-#@title CELL 14 — Convert detected structures into RAG content items
 
 def extract_structured_table_items(pdf_path, document_record):
     """

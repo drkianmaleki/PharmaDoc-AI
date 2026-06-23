@@ -1,32 +1,12 @@
 """
-pharmadoc/ingestion.py
+Document ingestion, selective OCR, and plot digitization for PharmaDoc AI.
 
-Section 8 - Generalized ingestion, OCR, plots, and mixed formats
-Source notebook cells: [33, 34, 35, 36]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
-
-NOTE: this file contains two user-approved fixes.
-(1) Cell 34's page_needs_ocr(): originally, a page with >=
-OCR_MIN_DIGITAL_CHARS of digital text skipped OCR
-unconditionally, even if the page was mostly an embedded image
-(e.g. a short repeated header/footer alongside a large scanned
-image). The fix checks image coverage before deciding to skip
-OCR, rather than only as a fallback when text is short.
-(2) Cell 35's _extract_legend_labels(): originally the legend-
-text OCR search region started exactly at the plot's left axis
-line. Some charting tools anchor the legend box slightly
-outside that line (overlapping the y-axis tick-label margin),
-which caused the legend text to go completely unread and all
-detected series to fall back to generic labels. The search
-region's left boundary now extends 35% of the plot's width
-further left, tolerating a wider range of legend placements.
-All other logic in this file is unmodified verbatim.
+Builds the document registry, applies selective OCR only to pages that need
+it, and extracts content from PDFs, images, DOCX, CSV, XLSX, and TXT files.
+Digitizes line charts into structured data tables using axis calibration,
+k-means color clustering, and OCR legend detection.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 from docx import Document
 from PIL import Image
 from pathlib import Path
@@ -38,16 +18,13 @@ import pandas as pd
 import pytesseract
 import re
 
-# --- cross-module imports (this package's own files) ---
 from .answer_routing import _normalize_rag_text
 from .config import MAX_UPLOAD_MB, OCR_MIN_CONFIDENCE, OCR_MIN_DIGITAL_CHARS, OCR_RENDER_DPI, SUPPORTED_EXTENSIONS
 from .metadata import create_content_item, create_document_record, detect_doc_type, extract_text_sample
 from .tables import format_detected_structure, normalize_table_matrix, table_to_markdown
 
-# ===== NOTEBOOK CELLS [33, 34, 35, 36] (verbatim) =====
 
 
-#@title CELL 28B — File validation, fingerprints, and generalized registry
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
 
@@ -180,7 +157,6 @@ def build_document_registry(file_paths):
 
 
 
-#@title CELL 28C — Selective OCR and conservative OCR-table reconstruction
 
 def render_pdf_page_to_image(page, dpi=OCR_RENDER_DPI):
     zoom = dpi / 72.0
@@ -399,7 +375,6 @@ def extract_selective_ocr_from_pdf(pdf_path, document_record):
     return text_items, table_items
 
 
-#@title CELL 25 — Robust multi-series plot-to-table extraction
 
 import math
 from collections import defaultdict
@@ -1690,7 +1665,6 @@ def extract_plots_from_pdf(pdf_path, document_record):
 
 
 
-#@title CELL 28E — Extractors for DOCX, TXT, CSV, XLSX, and images
 
 def dataframe_to_table_item(dataframe, document_record, page_number, label, method):
     dataframe = dataframe.fillna("").astype(str)

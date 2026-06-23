@@ -1,25 +1,18 @@
 """
-pharmadoc/evaluation.py
+RAG evaluation framework and answer dispatch for PharmaDoc AI.
 
-Section 10 - Evaluation framework
-Source notebook cells: [40, 41, 42]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Provides the master answer dispatcher (answer_question_with_rag),
+plot-specific retrieval and deterministic answer routes, and the
+Phase 8 evaluation harness used by the test suite.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 from collections import defaultdict
 
-# --- cross-module imports (this package's own files) ---
 from .answer_routing import RAG_NOT_FOUND_MESSAGE, _select_default_model_choice, answer_question_with_rag_general
 from .config import SUPPORTED_CONTENT_TYPES
 from .generation import format_sources
 
-# ===== NOTEBOOK CELLS [40, 41, 42] (verbatim) =====
 
-#@title CELL 26 — Phase 8 evaluation framework
 
 import time
 import pandas as pd
@@ -358,7 +351,6 @@ def run_evidence_gate_stability_test(
     return dataframe
 
 
-#@title CELL 27 — Phase 8 plot extraction validation
 
 from IPython.display import display
 
@@ -527,7 +519,6 @@ def summarize_phase8_content_coverage(
     return dataframe
 
 
-#@title CELL 28 — Plot-specific retrieval and deterministic answering
 
 import re
 import numpy as np

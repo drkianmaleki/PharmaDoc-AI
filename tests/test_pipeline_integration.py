@@ -1,15 +1,11 @@
 """
-Integration tests for the document-processing pipeline (ingestion, table
-detection, OCR, plot digitization) against the 4 real sample documents.
-These need no embedding/generation models -- only the fixture files -- so
-they run in any environment that has them copied into tests/fixtures/.
+Integration tests for the document-processing pipeline against the 4 sample
+documents (3 Northbridge Bioprocess JPGs + 7-page Virelion Clinical Trial PDF).
 
-This is the layer that actually broke in a previous (abandoned) conversion
-attempt: documents would process "successfully" but the extracted content
-silently never reached the rest of the app due to a cross-module global-
-state bug (see CONVERSION_NOTES.md). These tests exercise the real
-extraction functions end-to-end against real documents to catch exactly
-that class of regression.
+No embedding or generation models are required — only the fixture files — so
+these tests run in any environment with the fixtures present. They exercise
+ingestion, table detection, OCR, and plot digitization end-to-end against real
+documents to catch extraction and cross-module state regressions.
 """
 from pharmadoc.ingestion import (
     build_document_registry,

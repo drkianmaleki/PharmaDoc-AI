@@ -1,24 +1,16 @@
 """
-pharmadoc/text_extractor.py
+Digital text extraction and chunking for PharmaDoc AI.
 
-Section 3 - Digital text extraction and chunking
-Source notebook cells: [11, 12]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Extracts embedded text from PDF pages using PyMuPDF and splits long
+passages into overlapping chunks for FAISS indexing.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 import fitz
 
-# --- cross-module imports (this package's own files) ---
 from .config import CHUNK_OVERLAP, CHUNK_SIZE
 from .metadata import create_content_item
 
-# ===== NOTEBOOK CELLS [11, 12] (verbatim) =====
 
-#@title CELL 08 — Extract digital text content objects
 
 def extract_digital_text_items(pdf_path, document_record):
     """
@@ -79,7 +71,6 @@ Document type: {doc_type}
     return content_items
 
 
-#@title CELL 09 — Chunk long text content items
 
 def split_text_with_overlap(text, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP):
     """

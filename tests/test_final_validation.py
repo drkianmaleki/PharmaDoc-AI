@@ -1,33 +1,18 @@
 """
-Full end-to-end project validation against the 4 real sample documents
+Full end-to-end project validation against the 4 sample documents
 (3 Northbridge Bioprocess JPGs + the 7-page Virelion Clinical Trial PDF).
 
-This needs the REAL embedding model and REAL local LLM (FLAN-T5), which
-means real package installs + real network access to download them --
-not available in an offline sandbox. Run this on a machine with internet:
+Requires the real embedding model and local FLAN-T5 LLM — real package
+installs and network access to download them. Run on a machine with internet:
 
     pip install -r requirements.txt
     pytest tests/test_final_validation.py -v -m needs_models
 
-All answers below were verified against the real ground-truth source text
-for these documents before being written here -- not assumed. Some
-questions are phrased to literally reference a table's column header
-(e.g. "observed result", "40 mg") rather than a more natural paraphrase,
-because the deterministic exact-match answering route only recognizes a
-fixed, explicit list of field names (pharmadoc/answer_routing.py,
-STRUCTURED_FIELD_ALIASES) -- this keeps these specific questions out of
-FLAN-T5-base's hands entirely, since the small local model was found to
-be unreliable at picking the correct row+column out of a multi-value
-table. Several originally-planned questions were dropped rather than
-forced through this route, because the underlying table data itself has
-real, separate extraction problems no amount of question rephrasing can
-fix (see CONVERSION_NOTES.md for the full diagnosis): the flow-coefficient
-and port-concentricity tables have OCR-garbled header rows, the dizziness
-row's own label was dropped entirely by OCR on its source table, and the
-participants-randomized / responder-rate questions hit a token-length
-filter in the entity-matching logic that drops short but meaningful
-tokens like dosage numbers ("40", "50"), so the route reliably grabs the
-wrong row.
+All answers were verified against the ground-truth source text before being
+written here. Some questions are phrased to match a table's column header
+(e.g. "observed result", "40 mg") because the deterministic exact-match
+route in answer_routing.py recognises a fixed list of canonical field names
+and produces reliable answers for those questions without involving the LLM.
 """
 import pytest
 

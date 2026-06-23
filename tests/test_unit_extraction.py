@@ -1,8 +1,8 @@
 """
-Unit tests for standalone helper functions -- no models, no PDFs, no
-network access needed. These exercise the converted package's pure-logic
-helpers directly, the same way chatbot B's test suite tests its own
-helpers, but against chatbot A's actual (verbatim) implementations.
+Unit tests for standalone helper functions in PharmaDoc AI.
+
+No models, no PDFs, and no network access needed. Tests cover pure-logic
+helpers in tables, text_extractor, and metadata modules.
 """
 from pharmadoc.tables import (
     clean_table_cell,

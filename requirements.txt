@@ -1,19 +1,11 @@
 # Python dependencies for PharmaDoc AI.
 #
-# Version ranges below match the original notebook's CELL 01 install list
-# exactly, with two evidence-based exceptions found by actually running
-# this package end-to-end (see CONVERSION_NOTES.md):
-#
-#   - ipython: an IMPLICIT Colab dependency. The notebook never installs
-#     it explicitly because Colab ships it pre-installed, but
-#     evaluation.py uses `from IPython.display import display`. Needed
-#     for a standalone install.
-#   - gradio: the notebook pins "<7", but Gradio 6.x removed the `type=`
-#     argument from gr.Chatbot(), which this app's UI (cell 49,
-#     unmodified) relies on. Pinned to "<6" so the existing UI code
-#     keeps working.
-#
-# tesseract-ocr is a SYSTEM (apt) package, not pip -- see Dockerfile.
+# Notes:
+#   - ipython is required because evaluation.py uses IPython.display.display,
+#     which is pre-installed in Colab but must be listed explicitly here.
+#   - gradio is pinned to <6 because Gradio 6.x removed the `type=` argument
+#     from gr.Chatbot() which the current UI relies on.
+#   - tesseract-ocr is a system (apt) package, not pip -- see Dockerfile.
 
 pymupdf>=1.24,<1.27
 sentence-transformers>=3.0,<6

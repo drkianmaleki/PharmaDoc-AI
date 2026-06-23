@@ -1,22 +1,16 @@
 """
-pharmadoc/metadata.py
+Content-item and document-record schemas for PharmaDoc AI.
 
-Section 2 - Unified content and document metadata
-Source notebook cells: [6, 7, 8, 9]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Factory functions for content items (the core unit passed through ingestion
+and retrieval) and document registry records. Includes rule-based
+document-type classification.
 """
 
-# --- external imports (used by this file's verbatim code) ---
 import fitz
 import re
 import uuid
 
-# ===== NOTEBOOK CELLS [6, 7, 8, 9] (verbatim) =====
 
-#@title CELL 04 — Unified content item creator
 
 def create_content_item(
     document_id,
@@ -56,7 +50,6 @@ def create_content_item(
     return item
 
 
-#@title CELL 05 — Document registry record creator
 # Purpose: Track each uploaded PDF at the document level before extraction.
 
 def create_document_record(document_id, file_name, doc_type="Unknown", num_pages=0):
@@ -72,7 +65,6 @@ def create_document_record(document_id, file_name, doc_type="Unknown", num_pages
     }
 
 
-#@title CELL 06 — Detect document type
 
 def detect_doc_type(text_sample, file_name=""):
     """
@@ -169,7 +161,6 @@ def detect_doc_type(text_sample, file_name=""):
     return "Unknown"
 
 
-#@title CELL 07 — Extract text sample
 
 def extract_text_sample(pdf_path, max_pages=2):
     """

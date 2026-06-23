@@ -1,34 +1,19 @@
 """
-pharmadoc/generation.py
+Answer generation, source formatting, and confidence scoring for PharmaDoc AI.
 
-Section 6 - Sources, confidence, and model generation
-Source notebook cells: [25, 26, 27, 28]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
+Formats retrieval sources for display, estimates answer confidence from
+semantic scores and evidence-term matching, and routes generation requests
+to either a local FLAN-T5 model or the OpenAI API (gpt-4o-mini).
 """
 
-# --- external imports (used by this file's verbatim code) ---
 import os
 
-# --- cross-module imports (this package's own files) ---
 from .config import LOCAL_LLM_MODEL_NAME, MODEL_CATALOG
 
-# ADDED: generate_with_local_model() (below) reads/writes this
-# as a module-level cache via `global _local_generator`, but its
-# *initial* value (None) was only ever set once, in notebook
-# CELL 03 (config.py here). In the notebook's single shared
-# namespace that initial binding was already in scope by the
-# time this cell ran; split into separate files, generation.py
-# never gets it and the first call raises NameError. This line
-# restores exactly the value config.py sets (see config.py),
-# scoped to the one file that actually uses it.
+# Module-level cache for the local FLAN-T5 generator; populated on first use.
 _local_generator = None
 
-# ===== NOTEBOOK CELLS [25, 26, 27, 28] (verbatim) =====
 
-#@title CELL 19 — Robust retrieval-source formatting
 
 def _get_retrieval_display_score(chunk):
     """
@@ -132,7 +117,6 @@ def format_sources(retrieved_chunks):
     return "\n".join(source_lines)
 
 
-#@title CELL 20 — Estimate retrieval confidence
 
 def estimate_retrieval_confidence(retrieved_chunks):
     """
@@ -163,7 +147,6 @@ def estimate_retrieval_confidence(retrieved_chunks):
     return confidence, top_score
 
 
-#@title CELL 21 — Load optional API keys from Colab Secrets
 
 def load_optional_api_keys():
     """Load optional API keys without failing outside Colab."""
@@ -188,7 +171,6 @@ def load_optional_api_keys():
 load_optional_api_keys()
 
 
-#@title CELL 22 — Answer-generation functions and model router
 
 def generate_with_local_model(
     prompt,

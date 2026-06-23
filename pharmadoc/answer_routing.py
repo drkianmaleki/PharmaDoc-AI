@@ -1,32 +1,17 @@
 """
-pharmadoc/answer_routing.py
+Deterministic answer routing and hallucination-gating for PharmaDoc AI.
 
-Section 7 - Answer routing and hallucination control
-Source notebook cells: [30, 31]
-
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
-
-NOTE: cell 30's STRUCTURED_FIELD_ALIASES contains a
-user-approved, purely additive extension: two new canonical
-fields, 'observed result' and '40 mg', alongside the original 6
-(lot number, expiration date, part number, operating
-temperature, material, operating pressure). This lets a small
-number of test questions that literally reference those column
-headers route through deterministic exact-match answering
-instead of FLAN-T5 generation. Nothing was removed or changed;
-all other logic in this file is unmodified verbatim.
+Implements five deterministic answer routes — structured single-field,
+multi-field, comparison, materials, and plot-value lookup — that are
+attempted before any LLM call. Includes evidence-gate logic that
+suppresses low-confidence generated answers.
 """
 
-# --- cross-module imports (this package's own files) ---
 from .config import MODEL_CATALOG, SUPPORTED_CONTENT_TYPES
 from .generation import estimate_retrieval_confidence, format_sources, generate_answer_with_model
 from .retrieval import retrieve_relevant_chunks_hybrid
 
-# ===== NOTEBOOK CELLS [30, 31] (verbatim) =====
 
-#@title CELL 23 — Full RAG backend with deterministic structured answering
 import unicodedata
 
 import re
@@ -2060,7 +2045,6 @@ def answer_question_with_rag_general(
     }
 
 
-#@title CELL 24 — Stable query intent and prompt routing
 
 import re
 

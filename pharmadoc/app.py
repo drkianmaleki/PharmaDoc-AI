@@ -1,26 +1,15 @@
 """
-pharmadoc/app.py
+Gradio application, UI layout, and processing pipeline for PharmaDoc AI.
 
-Sections 11-12 - Gradio application, theme, and launch
-Source notebook cells: [44, 45, 46, 47, 49]
+Defines the Document Control Center and Chat panels, the multi-format
+document processing pipeline, the chat handler, and the custom green-black
+Gradio theme. Launch with:
 
-Verbatim conversion: the code below this header is copied directly from
-the notebook's cell source (mechanical extraction, not retyped). Only this
-docstring and the import lines immediately below are new.
-
-NOTE: cells 45, 46, and 49 contain two user-approved patches:
-(1) global statements replaced with an explicit RAGState object
-threaded through Gradio's gr.State, and (2) the launch() call
-guarded behind `if __name__ == "__main__":` so importing this
-module does not start a live server as a side effect (share=True
-left untouched). All other logic in this file, and every other
-file in this package, is unmodified verbatim.
+    python -m pharmadoc.app
 """
 
-# --- external imports (used by this file's verbatim code) ---
 import gradio as gr
 
-# --- cross-module imports (this package's own files) ---
 from .config import CHUNK_OVERLAP, CHUNK_SIZE, DEFAULT_MODEL_CHOICE, DEFAULT_TOP_K, MODEL_CATALOG, SUPPORTED_CONTENT_TYPES
 from .evaluation import answer_question_with_rag
 from .ingestion import build_document_registry, extract_non_pdf_items, extract_plots_from_pdf, extract_selective_ocr_from_pdf
@@ -32,9 +21,7 @@ from .text_extractor import extract_digital_text_items, split_text_with_overlap
 from .retrieval import embedding_model
 from .state import RAGState
 
-# ===== NOTEBOOK CELLS [44, 45, 46, 47, 49] (verbatim) =====
 
-#@title CELL 29 — UI summaries and filter choices
 
 from collections import defaultdict
 
@@ -94,7 +81,6 @@ def format_document_registry_summary(document_registry):
     return "\n".join(lines)
 
 
-#@title CELL 30 — Unified multi-format processing pipeline
 
 def normalize_uploaded_paths(uploaded_files):
     paths = []
@@ -277,7 +263,6 @@ def process_uploaded_documents_for_gradio(uploaded_files, enable_ocr, enable_plo
         return (f"Processing failed: {type(error).__name__}: {error}", "No searchable index was created.", *empty, state)
 
 
-#@title CELL 31 — Gradio chat handler
 
 import html
 import tempfile
@@ -459,7 +444,6 @@ def export_chat_history(history):
     return str(export_path)
 
 
-#@title CELL 32 — Complete green-black Gradio theme
 
 APP_THEME = gr.themes.Base(
     primary_hue=gr.themes.colors.green,
@@ -1153,7 +1137,6 @@ body,
 }
 """
 
-#@title CELL 33 — Build and launch the green-black Gradio interface
 
 with gr.Blocks(
     css=CUSTOM_CSS,

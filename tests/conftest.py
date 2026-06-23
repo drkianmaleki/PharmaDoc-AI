@@ -18,14 +18,13 @@ sys.path.insert(0, str(REPO_ROOT))
 
 def _install_offline_fallback_mocks_if_needed():
     """config.py imports sentence_transformers/transformers/openai at
-    module load time (verbatim notebook CELL 02), even for tests that
-    never touch embeddings. If those packages are genuinely installed
-    (the normal case, per requirements.txt), this does nothing at all.
-    It only kicks in -- with a loud warning -- in environments with no
-    internet access to download those (large) packages, so the rest of
-    the test suite can still run. NEVER use this flag to skip real
-    model-dependent assertions; needs_models-marked tests still require
-    the real packages and real network access."""
+    module load time, even for tests that never touch embeddings. If those
+    packages are genuinely installed (the normal case per requirements.txt),
+    this does nothing at all. It only kicks in — with a loud warning — in
+    environments with no internet access to download those large packages,
+    so the rest of the test suite can still run. NEVER use this flag to
+    skip real model-dependent assertions; needs_models-marked tests still
+    require the real packages and real network access."""
     import importlib
     import types
 

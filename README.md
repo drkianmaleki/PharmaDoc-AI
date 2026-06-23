@@ -23,7 +23,20 @@
 
 ---
 
-## Table of Contents
+## Screenshots
+
+<table>
+<tr>
+<td><img src="assets/chatbot_empty.png" width="420" alt="PharmaDoc AI — ready to receive documents"/></td>
+<td><img src="assets/chatbot_answering.png" width="420" alt="PharmaDoc AI — answering a chart question with source and confidence"/></td>
+</tr>
+<tr>
+<td align="center"><em>Document Control Center ready for upload</em></td>
+<td align="center"><em>Chart question answered deterministically with source tracing</em></td>
+</tr>
+</table>
+
+---
 
 * [Overview](#overview)
 * [Features](#features)
@@ -38,6 +51,7 @@
 * [Running Tests](#running-tests)
 * [Design Decisions](#design-decisions)
 * [Limitations](#limitations)
+* [Why PharmaDoc AI is not just another RAG chatbot](#why-pharmadoc-ai-is-not-just-another-rag-chatbot)
 
 ---
 
@@ -249,6 +263,7 @@ Key defaults, set in `pharmadoc/config.py`:
 | `OCR_MIN_DIGITAL_CHARS` | 60 | Below this, a page is sent to OCR |
 | `OCR_RENDER_DPI` | 200 | Page render resolution for OCR |
 | `PLOT_SAMPLE_POINTS` | 30 | Points sampled per chart series |
+| `PHARMADOC_PERSIST_DIR` | `rag_artifacts` | Directory for saved FAISS index and content store (override via env var) |
 
 ### OpenAI backend (optional)
 
@@ -356,11 +371,44 @@ deduplicated by normalized signature before indexing.
 
 ## Limitations
 
-* Plot digitization is approximate (pixel-position sampling), not exact
-  data recovery -- answers from the plot route are labeled accordingly.
-* OCR quality depends on scan resolution and is not perfect on low-quality
-  scans.
-* Single-process, single-session state by default (no multi-user database
-  backing `RAGState` between server restarts).
-* Local FLAN-T5 Base is a small model; complex multi-hop reasoning
-  questions are better served by the optional OpenAI backend.
+* Plot digitization is approximate (pixel-position sampling, not embedded
+  data recovery) — answers from the plot route are labeled accordingly.
+* OCR quality depends on scan resolution; low-quality or heavily compressed
+  scans may produce degraded table extraction.
+* Some questions may not receive a precise answer due to known extraction
+  challenges: OCR can misread row labels in merged or header-style table
+  cells, short tokens such as dosage numbers can be filtered out by the
+  entity-matching logic, and values that span multiple content types on the
+  same page may not resolve cleanly through a single route.
+* Single-process, single-session state by default — no multi-user database
+  backing `RAGState` between server restarts.
+* Local FLAN-T5 Base is a small model; complex multi-hop reasoning questions
+  are better served by the optional OpenAI backend.
+
+---
+
+## Why PharmaDoc AI is not just another RAG chatbot
+
+Most RAG demos retrieve text chunks and send them straight to an LLM.
+PharmaDoc AI tries to avoid the LLM entirely for high-risk factual questions.
+
+Before any model call, the pipeline attempts five deterministic answer routes:
+
+| Route | What it handles |
+|---|---|
+| Structured single-field | Lot numbers, burst pressure, Cmax, alpha allocation, expiration dates |
+| Structured multi-field | Material specs, operating conditions across multiple fields |
+| Comparison | Cross-column or cross-row value comparisons within the same table |
+| Materials | Bill-of-materials and polymer/component identification |
+| Plot lowest / highest | Minimum or maximum series value from a digitized chart |
+
+If a deterministic route produces an answer, the LLM is never called.
+The LLM is used only as a fallback for narrative questions where no
+structured match is possible.
+
+This matters for pharmaceutical and regulatory documents where a wrong
+value — a dose, a specification limit, a test result — carries real risk.
+An LLM that confidently produces "1.18 MPa" instead of "1.24 MPa" is
+worse than no answer at all. Deterministic-first routing makes the
+system's behaviour predictable and auditable, with every answer citing
+its source document, page, content type, and confidence score.
